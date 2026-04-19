@@ -13,8 +13,6 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "baseUrl": ".",
-    "paths": { "@client/*": ["src/*"] }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]
