@@ -1,6 +1,14 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-export const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+import Anthropic from "@anthropic-ai/sdk";
+
+// export const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+export const ai = new Anthropic()
+
+
+
+const client = new Anthropic();
 
 export const GENERATION_SCHEMA = {
   type: Type.OBJECT,
