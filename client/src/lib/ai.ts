@@ -10,6 +10,11 @@ export const ai = new Anthropic()
 
 const client = new Anthropic();
 
+
+// ! Fix schema to match claude response format, and
+// ! ensure it is properly validated in the backend before 
+// ! being sent to the frontend.
+
 export const GENERATION_SCHEMA = {
   type: Type.OBJECT,
   properties: {

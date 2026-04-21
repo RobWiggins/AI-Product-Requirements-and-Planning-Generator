@@ -5,8 +5,10 @@ export const router = Router();
 
 import Anthropic from "@anthropic-ai/sdk";
 
-// authToken: process.env.CLAUDE_CODE_OAUTH_TOKEN
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const client = new Anthropic({ 
+  apiKey: process.env.ANTHROPIC_API_KEY,
+  authToken: process.env.CLAUDE_CODE_OAUTH_TOKEN 
+});
 
 router.get("/health", async (_req: Request, res: Response) => {
   try {
@@ -30,6 +32,9 @@ router.get("/search", async (req: Request, res: Response) => {
   if (projectSearchParam === undefined || typeof projectSearchParam !== "string") {
     return res.status(400).json({ error: "Missing or invalid 'description' query parameter" });
   }
+
+  console.log('authToken:', process.env.CLAUDE_CODE_OAUTH_TOKEN)
+  console.log('apiKey:', process.env.ANTHROPIC_API_KEY)
 
   const message = await client.messages.create({
     model: "claude-opus-4-7",
