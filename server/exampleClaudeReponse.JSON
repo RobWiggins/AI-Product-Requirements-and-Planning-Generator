@@ -1,0 +1,314 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": {
+        "ProjectBlueprint": {
+          "projectName": "PlantDoc - Plant Care Companion",
+          "description": "A mobile application that leverages smartphone camera technology and AI-powered image recognition to diagnose diseases, pests, and health issues in houseplants, providing users with actionable care recommendations.",
+          "version": "1.0.0",
+          "productRequirementsDocument": {
+            "overview": "PlantDoc is a plant-care companion app that uses computer vision and machine learning to identify houseplant species, diagnose health issues, and provide personalized care recommendations through the user's smartphone camera.",
+            "objectives": [
+              "Enable users to diagnose plant health issues via camera in under 10 seconds",
+              "Achieve 85% accuracy in disease and pest identification",
+              "Build a personalized plant care library for each user",
+              "Provide actionable treatment plans for diagnosed issues"
+            ],
+            "targetAudience": "Houseplant owners ranging from beginners to enthusiasts who want quick, reliable plant health diagnostics without consulting experts.",
+            "successMetrics": [
+              "Monthly active users (MAU) > 50,000 within 6 months",
+              "Diagnosis accuracy rate > 85%",
+              "User retention rate > 40% at 30 days",
+              "Average session length > 3 minutes"
+            ],
+            "scope": "Mobile application (iOS and Android) with camera-based plant diagnostics, care recommendations, plant library, and reminder system.",
+            "outOfScope": [
+              "Outdoor garden plants and crops",
+              "Professional agricultural diagnostics",
+              "Plant purchasing marketplace",
+              "Social networking features in v1.0"
+            ]
+          },
+          "epics": [
+            {
+              "epicId": "EP-001",
+              "title": "Camera-Based Plant Diagnosis",
+              "description": "Core functionality allowing users to photograph plants and receive AI-powered health diagnostics.",
+              "priority": "High"
+            },
+            {
+              "epicId": "EP-002",
+              "title": "Plant Care Library",
+              "description": "Personal library where users track their plants and view care history.",
+              "priority": "Medium"
+            },
+            {
+              "epicId": "EP-003",
+              "title": "Care Recommendations & Reminders",
+              "description": "Personalized treatment plans and scheduled care reminders for user plants.",
+              "priority": "High"
+            },
+            {
+              "epicId": "EP-004",
+              "title": "User Account Management",
+              "description": "Account creation, authentication, and profile management.",
+              "priority": "Medium"
+            }
+          ],
+          "userStories": [
+            {
+              "storyId": "US-001",
+              "epicId": "EP-001",
+              "title": "Photograph plant for diagnosis",
+              "asA": "plant owner",
+              "iWant": "to take a photo of my sick plant using the app",
+              "soThat": "I can quickly identify what is wrong with it",
+              "priority": "High",
+              "acceptanceCriteria": [
+                "User can access camera from home screen in one tap",
+                "App provides framing guides for optimal photo capture",
+                "User can retake photo before submission",
+                "Photos are processed within 10 seconds"
+              ]
+            },
+            {
+              "storyId": "US-002",
+              "epicId": "EP-001",
+              "title": "Receive diagnosis results",
+              "asA": "plant owner",
+              "iWant": "to see a clear diagnosis of my plant's condition",
+              "soThat": "I understand what is affecting my plant",
+              "priority": "High",
+              "acceptanceCriteria": [
+                "Diagnosis displays confidence percentage",
+                "Multiple possible conditions shown if applicable",
+                "Visual examples of the identified condition provided",
+                "Severity level is indicated"
+              ]
+            },
+            {
+              "storyId": "US-003",
+              "epicId": "EP-002",
+              "title": "Save plants to library",
+              "asA": "plant owner",
+              "iWant": "to save my plants to a personal library",
+              "soThat": "I can track their health over time",
+              "priority": "Medium",
+              "acceptanceCriteria": [
+                "User can name and categorize each plant",
+                "Diagnosis history is saved per plant",
+                "Photos are stored with timestamps",
+                "Plants can be edited or deleted"
+              ]
+            },
+            {
+              "storyId": "US-004",
+              "epicId": "EP-003",
+              "title": "Get treatment recommendations",
+              "asA": "plant owner",
+              "iWant": "to receive step-by-step treatment instructions",
+              "soThat": "I can nurse my plant back to health",
+              "priority": "High",
+              "acceptanceCriteria": [
+                "Instructions are clear and actionable",
+                "Required materials are listed",
+                "Expected recovery timeline provided",
+                "Follow-up check-ins suggested"
+              ]
+            },
+            {
+              "storyId": "US-005",
+              "epicId": "EP-003",
+              "title": "Set care reminders",
+              "asA": "plant owner",
+              "iWant": "to receive watering and care reminders",
+              "soThat": "I do not forget to maintain my plants",
+              "priority": "Medium",
+              "acceptanceCriteria": [
+                "Reminders customizable per plant",
+                "Push notifications delivered on schedule",
+                "Snooze and complete options available",
+                "Reminder history tracked"
+              ]
+            },
+            {
+              "storyId": "US-006",
+              "epicId": "EP-004",
+              "title": "Create user account",
+              "asA": "new user",
+              "iWant": "to create an account",
+              "soThat": "my plant data syncs across devices",
+              "priority": "Medium",
+              "acceptanceCriteria": [
+                "Email and social login options available",
+                "Password requirements clearly shown",
+                "Email verification sent",
+                "Guest mode available as alternative"
+              ]
+            }
+          ],
+          "gherkinScenarios": [
+            {
+              "scenarioId": "GH-001",
+              "storyId": "US-001",
+              "feature": "Plant Photo Capture",
+              "scenario": "User successfully captures plant photo",
+              "given": "the user has opened the PlantDoc app and granted camera permissions",
+              "when": "the user taps the camera button and takes a photo of their plant",
+              "then": "the app displays the captured image with options to retake or submit for diagnosis"
+            },
+            {
+              "scenarioId": "GH-002",
+              "storyId": "US-002",
+              "feature": "Plant Diagnosis",
+              "scenario": "User receives accurate diagnosis results",
+              "given": "the user has submitted a clear photo of a diseased plant",
+              "when": "the AI processing completes within 10 seconds",
+              "then": "the app displays the diagnosis with confidence score, severity level, and visual reference images"
+            },
+            {
+              "scenarioId": "GH-003",
+              "storyId": "US-003",
+              "feature": "Plant Library",
+              "scenario": "User saves a new plant to library",
+              "given": "the user has completed a diagnosis scan",
+              "when": "the user taps Save to Library and enters plant details",
+              "then": "the plant appears in the user's library with diagnosis history attached"
+            },
+            {
+              "scenarioId": "GH-004",
+              "storyId": "US-004",
+              "feature": "Treatment Recommendations",
+              "scenario": "User views treatment plan",
+              "given": "the user has received a plant diagnosis",
+              "when": "the user taps View Treatment Plan",
+              "then": "the app displays step-by-step instructions, required materials, and recovery timeline"
+            },
+            {
+              "scenarioId": "GH-005",
+              "storyId": "US-005",
+              "feature": "Care Reminders",
+              "scenario": "User receives scheduled reminder",
+              "given": "the user has set a watering reminder for a plant",
+              "when": "the scheduled time arrives",
+              "then": "a push notification is delivered with options to mark complete or snooze"
+            }
+          ],
+          "tasks": [
+            {
+              "taskId": "TK-001",
+              "storyId": "US-001",
+              "title": "Implement camera integration module",
+              "description": "Build native camera interface with framing guides and photo capture functionality for iOS and Android.",
+              "estimatedHours": 24,
+              "priority": "High",
+              "dependencies": []
+            },
+            {
+              "taskId": "TK-002",
+              "storyId": "US-001",
+              "title": "Build image preprocessing pipeline",
+              "description": "Implement image compression, cropping, and optimization before ML inference.",
+              "estimatedHours": 16,
+              "priority": "High",
+              "dependencies": ["TK-001"]
+            },
+            {
+              "taskId": "TK-003",
+              "storyId": "US-002",
+              "title": "Integrate ML diagnosis model",
+              "description": "Connect plant disease classification model via API or on-device inference.",
+              "estimatedHours": 40,
+              "priority": "High",
+              "dependencies": ["TK-002"]
+            },
+            {
+              "taskId": "TK-004",
+              "storyId": "US-002",
+              "title": "Design diagnosis results UI",
+              "description": "Create UI screens showing diagnosis, confidence, severity, and reference imagery.",
+              "estimatedHours": 20,
+              "priority": "High",
+              "dependencies": ["TK-003"]
+            },
+            {
+              "taskId": "TK-005",
+              "storyId": "US-003",
+              "title": "Build plant library database",
+              "description": "Design and implement local and cloud data storage for user plants and history.",
+              "estimatedHours": 32,
+              "priority": "Medium",
+              "dependencies": []
+            },
+            {
+              "taskId": "TK-006",
+              "storyId": "US-004",
+              "title": "Create treatment content system",
+              "description": "Build CMS and data models for treatment plans tied to diagnoses.",
+              "estimatedHours": 28,
+              "priority": "High",
+              "dependencies": ["TK-003"]
+            },
+            {
+              "taskId": "TK-007",
+              "storyId": "US-005",
+              "title": "Implement push notification system",
+              "description": "Set up push notifications and reminder scheduling engine.",
+              "estimatedHours": 20,
+              "priority": "Medium",
+              "dependencies": ["TK-005"]
+            },
+            {
+              "taskId": "TK-008",
+              "storyId": "US-006",
+              "title": "Build authentication system",
+              "description": "Implement email and social authentication with secure token management.",
+              "estimatedHours": 24,
+              "priority": "Medium",
+              "dependencies": []
+            }
+          ],
+          "priorities": [
+            {
+              "priorityId": "PR-001",
+              "level": "High",
+              "itemId": "US-001",
+              "rationale": "Core camera functionality is essential to the product value proposition and must work flawlessly at launch."
+            },
+            {
+              "priorityId": "PR-002",
+              "level": "High",
+              "itemId": "US-002",
+              "rationale": "Diagnosis accuracy is the primary difAferentiator and user expectation; critical for MVP."
+            },
+            {
+              "priorityId": "PR-003",
+              "level": "High",
+              "itemId": "US-004",
+              "rationale": "Treatment recommendations deliver the actionable value that transforms diagnosis into outcomes."
+            },
+            {
+              "priorityId": "PR-004",
+              "level": "Medium",
+              "itemId": "US-003",
+              "rationale": "Plant library enhances retention but is not required for initial diagnosis value delivery."
+            },
+            {
+              "priorityId": "PR-005",
+              "level": "Medium",
+              "itemId": "US-005",
+              "rationale": "Reminders drive engagement but can be released in a post-MVP iteration."
+            },
+            {
+              "priorityId": "PR-006",
+              "level": "Medium",
+              "itemId": "US-006",
+              "rationale": "Account creation supports data sync but guest mode allows MVP usage without accounts."
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
