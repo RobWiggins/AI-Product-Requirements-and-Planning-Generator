@@ -1,12 +1,14 @@
+import { GoogleGenAI, Type } from "@google/genai";
+
 import Anthropic from "@anthropic-ai/sdk";
 
 import { z } from "zod";
 
 // export const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-// export const ai = new Anthropic()
+export const ai = new Anthropic({dangerouslyAllowBrowser: true})
 
-// const client = new Anthropic();
+export const client = new Anthropic({dangerouslyAllowBrowser: true});
 
 // ! Fix schema to match claude response format, and
 // ! ensure it is properly validated in the backend before 
@@ -151,33 +153,6 @@ User stories must follow the 'As a [role], I want [action], so that [value]' for
 
 // // Optional inferred TypeScript type
 // export type ExampleResponse = z.infer<typeof ExampleResponseSchema>;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

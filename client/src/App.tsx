@@ -12,6 +12,7 @@ import {
   TweakSettings
 } from "./components";
 import { ClaudeResponseSchema } from "./lib/ai";
+import assert from "assert";
 
 // import { z } from "zod";
 // import { Header } from "./components/Header";
@@ -68,30 +69,46 @@ export default function App() {
     setError(null);
 
     try {
-      const headers = new Headers([
-        ["Content-Type", "application/json"],
-        // ["apiKey", `${process.env.ANTHROPIC_API_KEY}`],
-        // ["authToken", `${process.env.CLAUDE_CODE_OAUTH_TOKEN}`],
-      ]);
+      const headers = new Headers({
+        "Content-Type": "application/json",
+        "dangerouslyAllowBrowser": "true",
+        // "apiKey": `${process.env.ANTHROPIC_API_KEY}`,
+        // "authToken": `${process.env.CLAUDE_CODE_OAUTH_TOKEN}`,
+      });
 
       const url = `http://localhost:3001/api/search?description=${encodeURIComponent(goalInput)}`;
-      const response = await fetch(url, { method: "GET", headers });
+      const response = await fetch(url, { method: "GET", ...headers });
+
+      
+
+      console.log("Raw response ---", response);
 
       if (!response.ok) {
         throw new Error(`Server error: ${response.statusText}`);
       }
 
-      const claudeResponse = ClaudeResponseSchema.safeParse(await response.json());
-      if (!claudeResponse.success) {
+      console.log('response---', response);
+
+      const responseJson = await response.json()
+
+      console.log('responseJson---', responseJson);
+
+      const claudeResponse = ClaudeResponseSchema.safeParse(responseJson);
+      console.log('claudeResponse --- ', claudeResponse);
+
+      if (!responseJson.ok) {
         throw new Error("Failed to parse Claude response");
       }
-      const blueprint = claudeResponse.data.content[0].text.ProjectBlueprint;
+      // const blueprint = claudeResponse.content.text.ProjectBlueprint;
+      // assert(claudeResponse.content[0].text)
+      // const blueprint: ProjectBlueprint = JSON.parse(claudeResponse.content[0].text || "[]")
+    
+      console.log('claudeResponse - ', claudeResponse);
 
-      console.log('blueprint - ', blueprint);
-
-      setBlueprint(blueprint);
+      const projectBlueprint = claudeResponse.content[0].text.ProjectBlueprint;
+      setBlueprint(projectBlueprint);
       setCompletedTaskIds(new Set());
-      if (blueprint.epics.length > 0) setActiveEpicId(blueprint.epics[0].epicId);
+      if (projectBlueprint.epics.length > 0) setActiveEpicId(projectBlueprint.epics[0].epicId);
     } catch (err: unknown) {
       console.error(err);
       setError("Failed to generate blueprint. Please verify your API key and try again.");
