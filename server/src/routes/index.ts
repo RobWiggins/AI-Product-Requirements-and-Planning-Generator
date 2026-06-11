@@ -5,6 +5,7 @@ export const router = Router();
 
 import Anthropic from "@anthropic-ai/sdk";
 import { ClaudeResponseSchema } from "../schemas/claudeResponse";
+import { z } from "zod";
 
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -82,7 +83,7 @@ router.get("/search", async (req: Request, res: Response) => {
   //    as JSON, and that it adheres to the schema provided in the documentation. The Schema and interfaces is as follows: ProjectBlueprint, Epic, UserStory, Task, Priority.
   //    remove new line characters from the response, and ensure it is properly escaped so that it can be parsed as JSON by the client.`;
 
-  const SYSTEM_PROMPT = `You are a senior product architect. Given a plain-text project description, generate a comprehensive ProjectBlueprint as a JSON object matching this schema exactly. Return ONLY valid JSON with no markdown fences, no explanation, no preamble.
+  const SYSTEM_PROMPT = `You are a senior product architect. Given a plain-text project description, generate a comprehensive ProjectBlueprint as a javascript object matching this schema exactly. Return an ONLY valid javascript object with no markdown fences, no explanation, no preamble.
 
 Schema:
   "projectName": string,
@@ -111,71 +112,60 @@ Rules:
 - Return ONLY the JSON object}
 `;
 
-  // const message = await client.messages.create({
-  //   model: "claude-opus-4-7",
-  //   max_tokens: 8192,
-  //   messages: [{ role: "user", content: finalPrompt }],
-  //   output_config: {
-  //     format: {
-  //       type: "json_schema",
-  //       schema: {
-  //         type: "object",
-  //         properties: {
-  //           key_points: {
-  //             type: "array",
-  //             items: { type: "string" },
-  //           },
-  //         },
-  //         required: ["key_points"],
-  //         additionalProperties: false,
-  //       },
-  //     },
-  //     effort: "high",
-  //   },
-  // });
-
+  // ? Need ???
   const headers = new Headers({
     "Content-Type": "application/json",
     "x-api-key": process.env.ANTHROPIC_API_KEY || "missing", // TODO fix
     "anthropic-version": "2023-06-01",
-    "dangerouslyAllowBrowser": "true", // TODO fix
+    dangerouslyAllowBrowser: "true", // TODO fix
     // "method": "POST",
   });
 
-  // const response = await fetch("https://api.anthropic.com/v1/messages", {
-  //   headers,
-  //   body: JSON.stringify({
-  //     model: "claude-sonnet-4-20250514",
-  //     max_tokens: 6000,
-  //     system: SYSTEM_PROMPT, // the prompt above
-  //     messages: [
-  //       { role: "user", content: projectDescription }, // the user's plain-text input
-  //     ],
-  //   }),
-  // });
+  const jsonSchema = z.toJSONSchema(ClaudeResponseSchema);  
+
+
+  // ? can probably remove as not needed
+  // const extractionTool: Anthropic.Messages.Tool = {
+  //   name: "project_blueprint_extractor",
+  //   description: "Extracts a structured ProjectBlueprint from the AI's response",
+  //   input_schema: jsonSchema as any,
+  // }
 
   const response = await client.messages.create({
-      model: "claude-opus-4-7",
-      max_tokens: 6000,
-      system: SYSTEM_PROMPT, // the prompt above
-      messages: [
-        { role: "user", content: projectDescription }, // the user's plain-text input
-      ],
-    })
-
-    // TODO make response syntax clearer (coalescing)
-    if (response === null || response === undefined || Object.keys(response).length === 0) {
-      return res.status(400).json({ error: "Invalid response from AI model" });
+    model: "claude-opus-4-7",
+    max_tokens: 12000,
+    system: SYSTEM_PROMPT,
+    messages: [
+      { role: "user", content: projectDescription }, // the user's plain-text input
+    ],
+    output_config: {
+      format: {
+        type: "json_schema",
+        schema: jsonSchema,
+      },
     }
+  });
 
-  // const data =  response.json()
+  // TODO make response syntax clearer (coalescing)
+  if (
+    response === null ||
+    response === undefined ||
+    Object.keys(response).length === 0
+  ) {
+    return res.status(400).json({ error: "Invalid response from AI model" });
+  }
+
   console.log("Raw response ---", response);
-  // const raw = data.content.map((c: { text?: string }) => c.text ?? "").join("");
-  // TODO assume type here?
-  const blueprint = ClaudeResponseSchema.safeParse(response);
 
-  // const isEmpty = (obj: object): boolean => Object.keys(obj).length === 0;
+  const validatedData = ClaudeResponseSchema.safeParse(response)
+  // const projectData = JSON.parse(validatedData.content[0]?.text);
+  
+  return res.status(200).json(validatedData);
+  
 
+  // ! TODO Handle error case
+  // return res.status(500).json({ error: "Server or third party dependencies could not process your request." });
+  
   // if (
   //   isEmpty(data) ||
   //   !data.content ||
@@ -183,14 +173,4 @@ Rules:
   //   data.content.length === 0
   // ) {
   //   return res.status(400).json({ error: "Invalid response from AI model" });
-  // }ß
-
-  // const raw = data.content.map((c: { text?: string }) => c.text ?? "").join("");
-  // const blueprint: ProjectBlueprint = JSON.parse(raw);
-
-  console.log("blueprint ---", blueprint);
-
-  return res.status(200).json({ blueprint });
-  // message: JSON.parse(message.)
-  // });
 });
