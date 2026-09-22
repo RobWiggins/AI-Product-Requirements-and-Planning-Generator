@@ -237,9 +237,7 @@ export const ProjectBlueprintSchema = z.object({
 
 export const ClaudeContentItemSchema = z.object({
   type: z.literal("text"),
-  text: z.object({
-    ProjectBlueprint: ProjectBlueprintSchema,
-  }),
+  text: z.string(),
 });
 
 export const ClaudeResponseSchema = z.object({

@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ProjectBlueprint, Epic, UserStory, Task } from "./lib/ai";
+import { ProjectBlueprint, Epic, UserStory, Task, ClaudeResponse } from "./lib/ai";
 import {
   EpicCanvas,
   EpicSidebar,
@@ -87,25 +87,59 @@ export default function App() {
         throw new Error(`Server error: ${response.statusText}`);
       }
 
-      console.log('response---', response);
-
       const responseJson = await response.json()
 
       console.log('responseJson---', responseJson);
 
-      const claudeResponse = ClaudeResponseSchema.safeParse(responseJson);
-      console.log('claudeResponse --- ', claudeResponse);
+      // #region agent log
+      fetch("http://127.0.0.1:7347/ingest/2ac28a71-ef8c-4fc1-907c-5f99302f68ea", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Debug-Session-Id": "f31864",
+        },
+        body: JSON.stringify({
+          sessionId: "f31864",
+          runId: "pre-fix",
+          hypothesisId: "E",
+          location: "client/src/App.tsx:generateBlueprint",
+          message: "Client JSON after fetch",
+          data: {
+            httpOk: response.ok,
+            responseJsonOk: responseJson?.ok,
+            responseJsonKeys:
+              responseJson && typeof responseJson === "object"
+                ? Object.keys(responseJson)
+                : [],
+            hasProjectBlueprint: Boolean(responseJson?.projectBlueprint),
+            blueprintEpicCount: Array.isArray(responseJson?.projectBlueprint?.epics)
+              ? responseJson.projectBlueprint.epics.length
+              : null,
+          },
+          timestamp: Date.now(),
+        }),
+      }).catch(() => {});
+      // #endregion
 
-      if (!responseJson.ok) {
+      // const claudeResponse = ClaudeResponseSchema.safeParse(responseJson.content)
+      // console.log('claudeResponse --- ', claudeResponse.data);
+
+      if (!responseJson?.projectBlueprint) {
         throw new Error("Failed to parse Claude response");
       }
       // const blueprint = claudeResponse.content.text.ProjectBlueprint;
       // assert(claudeResponse.content[0].text)
       // const blueprint: ProjectBlueprint = JSON.parse(claudeResponse.content[0].text || "[]")
     
-      console.log('claudeResponse - ', claudeResponse);
+      // console.log('claudeResponse - ', claudeResponse);
 
-      const projectBlueprint = claudeResponse.content[0].text.ProjectBlueprint;
+      const { projectBlueprint } = responseJson
+      console.log('projectBlueprint --- ', projectBlueprint);
+      // const projectBlueprint = claudeResponse; // TODO fix schema to match actual response
+      
+      // text.ProjectBlueprint;
+
+      
       setBlueprint(projectBlueprint);
       setCompletedTaskIds(new Set());
       if (projectBlueprint.epics.length > 0) setActiveEpicId(projectBlueprint.epics[0].epicId);

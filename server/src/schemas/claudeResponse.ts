@@ -56,7 +56,7 @@ const PriorityItemSchema = z.object({
   rationale: z.string(),
 });
 
-const ProjectBlueprintSchema = z.object({
+export const ProjectBlueprintSchema = z.object({
   projectName: z.string(),
   description: z.string(),
   version: z.string(),
@@ -68,11 +68,10 @@ const ProjectBlueprintSchema = z.object({
   priorities: z.array(PriorityItemSchema),
 });
 
+// Anthropic always returns the generated JSON as a string on content[0].text.
 const ClaudeContentItemSchema = z.object({
   type: z.literal("text"),
-  text: z.object({
-    ProjectBlueprint: ProjectBlueprintSchema,
-  }),
+  text: z.string(),
 });
 
 export const ClaudeResponseSchema = z.object({
