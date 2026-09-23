@@ -1,16 +1,20 @@
-import { Trash2, Plus } from "lucide-react";
+import { FileText, Layers, Trash2 } from "lucide-react";
 import { ProjectBlueprint } from "../lib/ai";
+
+export type WorkspaceView = "overview" | "backlog";
 
 interface Props {
   blueprint: ProjectBlueprint | null;
+  workspaceView: WorkspaceView;
+  onWorkspaceView: (view: WorkspaceView) => void;
   onClear: () => void;
 }
 
-export function Header({ blueprint, onClear }: Props) {
+export function Header({ blueprint, workspaceView, onWorkspaceView, onClear }: Props) {
   return (
-    <header className="sticky top-0 z-20 border-b border-rule-soft bg-paper/80 backdrop-blur-md px-8 py-4 flex items-center justify-between">
-      <div className="flex items-center gap-6 min-w-0">
-        <div className="flex items-center gap-2.5">
+    <header className="sticky top-0 z-20 border-b border-rule-soft bg-paper/90 backdrop-blur-md px-5 sm:px-8 py-3.5 flex items-center justify-between gap-4">
+      <div className="flex items-center gap-5 min-w-0">
+        <div className="flex items-center gap-2.5 shrink-0">
           <span className="text-accent text-[22px] -translate-y-px select-none">◐</span>
           <span className="font-serif text-[22px] font-semibold tracking-tight text-ink">
             StoryFlow
@@ -19,7 +23,7 @@ export function Header({ blueprint, onClear }: Props) {
 
         {blueprint && (
           <>
-            <span className="font-serif text-ink-3 text-xl font-light">/</span>
+            <span className="hidden sm:block h-6 w-px bg-rule-soft" />
             <div className="flex flex-col leading-tight min-w-0">
               <span className="font-serif text-[15px] font-medium tracking-tight text-ink truncate">
                 {blueprint.projectName}
@@ -36,19 +40,41 @@ export function Header({ blueprint, onClear }: Props) {
             </div>
           </>
         )}
-
-        {!blueprint && (
-          <nav className="hidden md:flex gap-6 text-[14px] text-ink-2 font-body">
-            <button className="hover:text-ink transition-colors">Examples</button>
-            <button className="hover:text-ink transition-colors">Method</button>
-            <button className="hover:text-ink transition-colors">Changelog</button>
-          </nav>
-        )}
       </div>
 
       <div className="flex items-center gap-3">
+        {blueprint && (
+          <div className="hidden sm:flex p-1 rounded-full bg-paper-2 border border-rule-soft">
+            <button
+              type="button"
+              onClick={() => onWorkspaceView("overview")}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-ui transition-colors ${
+                workspaceView === "overview"
+                  ? "bg-paper text-ink shadow-sm"
+                  : "text-ink-3 hover:text-ink"
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5" />
+              Overview
+            </button>
+            <button
+              type="button"
+              onClick={() => onWorkspaceView("backlog")}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-ui transition-colors ${
+                workspaceView === "backlog"
+                  ? "bg-paper text-ink shadow-sm"
+                  : "text-ink-3 hover:text-ink"
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5" />
+              Backlog
+            </button>
+          </div>
+        )}
+
         {blueprint ? (
           <button
+            type="button"
             onClick={onClear}
             className="inline-flex items-center gap-2 text-[12px] font-mono uppercase tracking-[0.12em] text-ink-3 hover:text-accent-ink transition-colors px-3 py-2 rounded-full border border-rule-soft hover:border-accent/40 hover:bg-accent-wash/40"
           >
@@ -56,15 +82,9 @@ export function Header({ blueprint, onClear }: Props) {
             New Draft
           </button>
         ) : (
-          <>
-            <button className="text-[14px] text-ink-2 hover:text-ink transition-colors hidden sm:inline-flex items-center gap-1.5">
-              Sign in
-            </button>
-            <button className="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-ink text-paper text-[13px] font-body hover:bg-accent-ink transition-colors shadow-[0_6px_14px_-6px_oklch(0.2_0.02_60/.4)]">
-              <Plus className="w-3.5 h-3.5" />
-              Get early access
-            </button>
-          </>
+          <span className="hidden sm:inline font-ui text-[13px] text-ink-3">
+            Product plans from a paragraph
+          </span>
         )}
       </div>
     </header>

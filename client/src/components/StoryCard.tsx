@@ -17,7 +17,7 @@ interface Props {
   story: UserStory;
   index: number;
   accentClasses: EpicColor;
-  gherkin: GherkinScenario | null;
+  gherkins: GherkinScenario[];
   tasks: Task[];
   completedTaskIds: Set<string>;
   isExpanded: boolean;
@@ -31,7 +31,7 @@ export function StoryCard({
   story,
   index,
   accentClasses,
-  gherkin,
+  gherkins,
   tasks,
   completedTaskIds,
   isExpanded,
@@ -48,103 +48,119 @@ export function StoryCard({
       value={story}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`group border-b border-rule-soft transition-[background,padding,margin,border-radius] ${
+      className={`group rounded-2xl border transition-colors ${
         isExpanded
-          ? "bg-gradient-to-b from-[oklch(0.97_0.015_85)] to-paper rounded-[12px] px-6 -mx-6 py-5"
-          : "py-5"
+          ? "border-accent/35 bg-paper shadow-[0_10px_28px_-22px_oklch(0.3_0.04_50/.5)]"
+          : "border-rule-soft bg-paper hover:border-accent/30"
       }`}
     >
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3 min-w-0">
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={onToggleExpand}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onToggleExpand();
+          }
+        }}
+        className="flex items-start justify-between gap-4 px-5 py-4 cursor-pointer"
+      >
+        <div className="flex items-start gap-3 min-w-0">
           <button
-            className="cursor-grab active:cursor-grabbing text-ink-3 hover:text-ink opacity-0 group-hover:opacity-100 transition-opacity"
+            type="button"
+            onClick={(e) => e.stopPropagation()}
+            className="cursor-grab active:cursor-grabbing text-ink-3 hover:text-ink mt-1 opacity-0 group-hover:opacity-100 transition-opacity"
             aria-label="Drag to reorder"
           >
             <GripVertical className="w-4 h-4" />
           </button>
 
-          <span className="font-mono text-[11px] tracking-[0.1em] text-ink-3 shrink-0">
-            S-{String(index + 1).padStart(2, "0")}
-          </span>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2 mb-1.5">
+              <span className="font-mono text-[11px] tracking-[0.1em] text-ink-3">
+                S-{String(index + 1).padStart(2, "0")}
+              </span>
+              <span
+                className={`font-mono text-[10px] uppercase tracking-[0.1em] px-2 py-[3px] rounded-full ${
+                  PRIORITY_CHIP[story.priority]
+                }`}
+              >
+                {story.priority}
+              </span>
+              {tasks.length > 0 && (
+                <span className="font-mono text-[10px] text-ink-3 inline-flex items-center gap-1.5">
+                  <Clock className="w-3 h-3" />
+                  {totalEstHours}h · {completedHere}/{tasks.length}
+                </span>
+              )}
+            </div>
 
-          <span
-            className={`font-mono text-[10px] uppercase tracking-[0.1em] px-2 py-[3px] rounded-full ${
-              PRIORITY_CHIP[story.priority]
-            }`}
-          >
-            {story.priority}
-          </span>
+            <h4
+              className="font-serif text-[20px] font-medium tracking-[-0.01em] leading-snug text-ink outline-none focus:text-accent-ink transition-colors"
+              contentEditable
+              suppressContentEditableWarning
+              onClick={(e) => e.stopPropagation()}
+              onBlur={(e) => onUpdate({ title: e.currentTarget.innerText })}
+            >
+              {story.title}
+            </h4>
 
-          {tasks.length > 0 && (
-            <span className="font-mono text-[10px] text-ink-3 inline-flex items-center gap-1.5 shrink-0">
-              <Clock className="w-3 h-3" />
-              {totalEstHours}h · {completedHere}/{tasks.length}
-            </span>
-          )}
+            <p className="font-ui text-[14px] leading-[1.55] text-ink-2 mt-1.5">
+              <span className="italic text-ink-3">As </span>
+              <span
+                className="outline-none focus:text-accent-ink transition-colors"
+                contentEditable
+                suppressContentEditableWarning
+                onClick={(e) => e.stopPropagation()}
+                onBlur={(e) => onUpdate({ asA: e.currentTarget.innerText })}
+              >
+                {story.asA}
+              </span>
+              <span className="italic text-ink-3">, I want </span>
+              <span
+                className="outline-none focus:text-accent-ink transition-colors"
+                contentEditable
+                suppressContentEditableWarning
+                onClick={(e) => e.stopPropagation()}
+                onBlur={(e) => onUpdate({ iWant: e.currentTarget.innerText })}
+              >
+                {story.iWant}
+              </span>
+              <span className="italic text-ink-3"> so that </span>
+              <span
+                className="outline-none focus:text-accent-ink transition-colors"
+                contentEditable
+                suppressContentEditableWarning
+                onClick={(e) => e.stopPropagation()}
+                onBlur={(e) => onUpdate({ soThat: e.currentTarget.innerText })}
+              >
+                {story.soThat}
+              </span>
+              <span className="text-ink-3">.</span>
+            </p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1 shrink-0">
           <button
-            onClick={onDelete}
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
             className="p-1.5 text-ink-3 hover:text-accent-ink opacity-0 group-hover:opacity-100 transition-opacity"
             aria-label="Delete story"
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
-          <button
-            onClick={onToggleExpand}
-            className="p-1.5 text-ink-3 hover:text-ink transition-colors"
-            aria-label="Toggle details"
-          >
-            <ChevronRight
-              className={`w-4 h-4 transition-transform ${
-                isExpanded ? `rotate-90 ${accentClasses.classes.text}` : ""
-              }`}
-            />
-          </button>
+          <ChevronRight
+            className={`w-4 h-4 text-ink-3 transition-transform mt-1 ${
+              isExpanded ? `rotate-90 ${accentClasses.classes.text}` : ""
+            }`}
+          />
         </div>
       </div>
-
-      <h4
-        className="font-serif text-[22px] font-medium tracking-[-0.01em] leading-snug text-ink outline-none mt-2 focus:text-accent-ink transition-colors"
-        contentEditable
-        suppressContentEditableWarning
-        onBlur={(e) => onUpdate({ title: e.currentTarget.innerText })}
-      >
-        {story.title}
-      </h4>
-
-      {/* The "as a / I want / so that" line, with italic role markers */}
-      <p className="font-serif text-[16px] leading-[1.55] text-ink mt-1.5">
-        <span className="italic text-ink-3">As </span>
-        <span
-          className="outline-none focus:text-accent-ink transition-colors"
-          contentEditable
-          suppressContentEditableWarning
-          onBlur={(e) => onUpdate({ asA: e.currentTarget.innerText })}
-        >
-          {story.asA}
-        </span>
-        <span className="italic text-ink-3">, I want </span>
-        <span
-          className="outline-none focus:text-accent-ink transition-colors"
-          contentEditable
-          suppressContentEditableWarning
-          onBlur={(e) => onUpdate({ iWant: e.currentTarget.innerText })}
-        >
-          {story.iWant}
-        </span>
-        <span className="italic text-ink-3"> so that </span>
-        <span
-          className="outline-none focus:text-accent-ink transition-colors"
-          contentEditable
-          suppressContentEditableWarning
-          onBlur={(e) => onUpdate({ soThat: e.currentTarget.innerText })}
-        >
-          {story.soThat}
-        </span>
-        <span className="text-ink-3">.</span>
-      </p>
 
       <AnimatePresence initial={false}>
         {isExpanded && (
@@ -153,9 +169,9 @@ export function StoryCard({
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="overflow-hidden"
+            className="overflow-hidden px-5 pb-5"
           >
-            <div className="mt-5 pt-5 border-t border-dashed border-rule grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div className="pt-4 border-t border-dashed border-rule grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Left column — AC + Gherkin */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
@@ -201,51 +217,45 @@ export function StoryCard({
                   ))}
                 </ol>
 
-                {gherkin && (
-                  <div className="mt-7">
-                    <div className="flex items-center gap-2 mb-3">
+                {gherkins.length > 0 && (
+                  <div className="mt-7 flex flex-col gap-4">
+                    <div className="flex items-center gap-2">
                       <FileText className="w-3.5 h-3.5 text-ink-3" />
-                      <span className="eyebrow">Gherkin scenario</span>
+                      <span className="eyebrow">Gherkin scenarios</span>
                     </div>
-                    <div className="rounded-[12px] border border-rule-soft bg-paper-2 p-4 font-mono text-[12px] leading-[1.65] text-ink-2 overflow-x-auto whitespace-pre-wrap">
-                      <div>
-                        <span className="text-accent-ink">Feature:</span>{" "}
-                        {gherkin.feature}
-                      </div>
-                      <div className="mt-1">
-                        <span className="text-accent-ink">Scenario:</span>{" "}
-                        {gherkin.scenario}
-                      </div>
-                      <div className="mt-2 pl-3 border-l-2 border-rule">
+                    {gherkins.map((gherkin) => (
+                      <div
+                        key={gherkin.scenarioId}
+                        className="rounded-xl border border-rule-soft bg-paper-2 p-4 font-mono text-[12px] leading-[1.65] text-ink-2 overflow-x-auto whitespace-pre-wrap"
+                      >
                         <div>
-                          <span
-                            className="font-semibold"
-                            style={{ color: accentClasses.ink }}
-                          >
-                            Given
-                          </span>{" "}
-                          {gherkin.given}
+                          <span className="text-accent-ink">Feature:</span> {gherkin.feature}
                         </div>
-                        <div>
-                          <span
-                            className="font-semibold"
-                            style={{ color: accentClasses.ink }}
-                          >
-                            When
-                          </span>{" "}
-                          {gherkin.when}
+                        <div className="mt-1">
+                          <span className="text-accent-ink">Scenario:</span> {gherkin.scenario}
                         </div>
-                        <div>
-                          <span
-                            className="font-semibold"
-                            style={{ color: accentClasses.ink }}
-                          >
-                            Then
-                          </span>{" "}
-                          {gherkin.then}
+                        <div className="mt-2 pl-3 border-l-2 border-rule">
+                          <div>
+                            <span className="font-semibold" style={{ color: accentClasses.ink }}>
+                              Given
+                            </span>{" "}
+                            {gherkin.given}
+                          </div>
+                          <div>
+                            <span className="font-semibold" style={{ color: accentClasses.ink }}>
+                              When
+                            </span>{" "}
+                            {gherkin.when}
+                          </div>
+                          <div>
+                            <span className="font-semibold" style={{ color: accentClasses.ink }}>
+                              Then
+                            </span>{" "}
+                            {gherkin.then}
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
                 )}
               </div>

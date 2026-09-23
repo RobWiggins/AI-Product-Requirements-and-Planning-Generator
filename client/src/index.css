@@ -1,12 +1,13 @@
-@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400&family=Figtree:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 @theme {
   /* Editorial serif + body + mono stack */
   --font-serif: "Newsreader", "Source Serif 4", Georgia, serif;
-  --font-body: "Source Serif 4", Georgia, serif;
+  --font-body: "Figtree", "Source Serif 4", system-ui, sans-serif;
+  --font-ui: "Figtree", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
-  --font-sans: "Source Serif 4", Georgia, serif;
+  --font-sans: "Figtree", system-ui, sans-serif;
 
   /* Paper palette — warm off-white layers */
   --color-paper: oklch(0.975 0.012 84);
@@ -48,7 +49,7 @@
     padding: 0;
   }
   body {
-    font-family: var(--font-body);
+    font-family: var(--font-ui);
     background: var(--color-paper);
     color: var(--color-ink);
     font-size: 16px;

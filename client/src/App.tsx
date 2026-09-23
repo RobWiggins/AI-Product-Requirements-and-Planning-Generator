@@ -7,28 +7,11 @@ import {
   Footer,
   GoalInput,
   Header,
-  StoryCard,
   Tweaks,
   TweakSettings
 } from "./components";
-import { ClaudeResponseSchema } from "./lib/ai";
-import assert from "assert";
-
-// import { z } from "zod";
-// import { Header } from "./components/Header";
-// import Footer from "./components/Footer"; 
-// import { GoalInput } from "./components/GoalInput";
-// import { EpicSidebar } from "./components/EpicSidebar";
-// import { EpicCanvas } from "./components/EpicCanvas";
-// import { Tweaks, TweakSettings } from "./components/Tweaks";
-
-
-// import { Header } from "./components/Header";
-// import Footer from "./components/Footer"; 
-// import { GoalInput } from "./components/GoalInput";
-// import { EpicSidebar } from "./components/EpicSidebar";
-// import { EpicCanvas } from "./components/EpicCanvas";
-// import { Tweaks, TweakSettings } from "./components/Tweaks";
+import OverviewPanel from "./components/OverviewPanel";
+import type { WorkspaceView } from "./components/Header";
 
 const TWEAK_DEFAULTS: TweakSettings = {
   accentHue: 38,
@@ -51,7 +34,8 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [activeEpicId, setActiveEpicId] = useState<string | null>(null);
   const [expandedStoryId, setExpandedStoryId] = useState<string | null>(null);
-  // Tasks have no `status` in the schema — track completion locally for the UI
+  const [workspaceView, setWorkspaceView] = useState<WorkspaceView>("overview");
+  // TODO FIX Tasks have no `status` in the schema — track completion locally for the UI
   const [completedTaskIds, setCompletedTaskIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -72,16 +56,10 @@ export default function App() {
       const headers = new Headers({
         "Content-Type": "application/json",
         "dangerouslyAllowBrowser": "true",
-        // "apiKey": `${process.env.ANTHROPIC_API_KEY}`,
-        // "authToken": `${process.env.CLAUDE_CODE_OAUTH_TOKEN}`,
       });
 
       const url = `http://localhost:3001/api/search?description=${encodeURIComponent(goalInput)}`;
       const response = await fetch(url, { method: "GET", ...headers });
-
-      
-
-      console.log("Raw response ---", response);
 
       if (!response.ok) {
         throw new Error(`Server error: ${response.statusText}`);
@@ -89,59 +67,16 @@ export default function App() {
 
       const responseJson = await response.json()
 
-      console.log('responseJson---', responseJson);
-
-      // #region agent log
-      fetch("http://127.0.0.1:7347/ingest/2ac28a71-ef8c-4fc1-907c-5f99302f68ea", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Debug-Session-Id": "f31864",
-        },
-        body: JSON.stringify({
-          sessionId: "f31864",
-          runId: "pre-fix",
-          hypothesisId: "E",
-          location: "client/src/App.tsx:generateBlueprint",
-          message: "Client JSON after fetch",
-          data: {
-            httpOk: response.ok,
-            responseJsonOk: responseJson?.ok,
-            responseJsonKeys:
-              responseJson && typeof responseJson === "object"
-                ? Object.keys(responseJson)
-                : [],
-            hasProjectBlueprint: Boolean(responseJson?.projectBlueprint),
-            blueprintEpicCount: Array.isArray(responseJson?.projectBlueprint?.epics)
-              ? responseJson.projectBlueprint.epics.length
-              : null,
-          },
-          timestamp: Date.now(),
-        }),
-      }).catch(() => {});
-      // #endregion
-
-      // const claudeResponse = ClaudeResponseSchema.safeParse(responseJson.content)
-      // console.log('claudeResponse --- ', claudeResponse.data);
-
       if (!responseJson?.projectBlueprint) {
         throw new Error("Failed to parse Claude response");
       }
-      // const blueprint = claudeResponse.content.text.ProjectBlueprint;
-      // assert(claudeResponse.content[0].text)
-      // const blueprint: ProjectBlueprint = JSON.parse(claudeResponse.content[0].text || "[]")
-    
-      // console.log('claudeResponse - ', claudeResponse);
-
+      
       const { projectBlueprint } = responseJson
       console.log('projectBlueprint --- ', projectBlueprint);
-      // const projectBlueprint = claudeResponse; // TODO fix schema to match actual response
-      
-      // text.ProjectBlueprint;
-
       
       setBlueprint(projectBlueprint);
       setCompletedTaskIds(new Set());
+      setWorkspaceView("overview");
       if (projectBlueprint.epics.length > 0) setActiveEpicId(projectBlueprint.epics[0].epicId);
     } catch (err: unknown) {
       console.error(err);
@@ -195,6 +130,7 @@ export default function App() {
     };
     setBlueprint((prev) => (prev ? { ...prev, epics: [...prev.epics, newEpic] } : null));
     setActiveEpicId(newEpic.epicId);
+    setWorkspaceView("backlog");
   };
 
   const addStory = (epicId: string) => {
@@ -265,7 +201,7 @@ export default function App() {
   );
 
   return (
-    <div className="relative flex flex-col h-screen bg-paper text-ink font-body selection:bg-accent-wash">
+    <div className="relative flex flex-col min-h-screen h-screen bg-paper text-ink font-ui selection:bg-accent-wash">
       {/* Soft, vibrant paper wash that follows the accent hue */}
       <div
         aria-hidden
@@ -281,83 +217,107 @@ export default function App() {
 
       <Header
         blueprint={blueprint}
+        workspaceView={workspaceView}
+        onWorkspaceView={(view) => {
+          setWorkspaceView(view);
+          if (view === "backlog" && !activeEpicId && blueprint?.epics[0]) {
+            setActiveEpicId(blueprint.epics[0].epicId);
+          }
+        }}
         onClear={() => {
           setBlueprint(null);
           setGoalInput("");
           setActiveEpicId(null);
           setExpandedStoryId(null);
           setCompletedTaskIds(new Set());
+          setWorkspaceView("overview");
         }}
       />
 
       <main className="flex-1 min-h-0 overflow-hidden relative z-10">
-        <div className="h-full max-w-6xl mx-auto px-8">
-          <AnimatePresence mode="wait">
-            {!blueprint ? (
-              <motion.div
-                key="landing"
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                transition={{ duration: 0.2 }}
-                className="h-full overflow-y-auto custom-scrollbar"
-              >
-                <div className="pt-10 pb-16">
-                  <GoalInput
-                    goalInput={goalInput}
-                    isGenerating={isGenerating}
-                    error={error}
-                    onChange={setGoalInput}
-                    onGenerate={generateBlueprint}
-                  />
-                </div>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="blueprint"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.2 }}
-                className="flex gap-8 h-full pt-6 pb-4"
-              >
-                <EpicSidebar
-                  blueprint={blueprint}
-                  activeEpicId={activeEpicId}
-                  onSelectEpic={setActiveEpicId}
-                  onDeleteEpic={deleteEpic}
-                  onAddEpic={addEpic}
+        <AnimatePresence mode="wait">
+          {!blueprint ? (
+            <motion.div
+              key="landing"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.2 }}
+              className="h-full overflow-y-auto custom-scrollbar"
+            >
+              <div className="max-w-6xl mx-auto px-5 sm:px-8 pt-12 pb-20">
+                <GoalInput
+                  goalInput={goalInput}
+                  isGenerating={isGenerating}
+                  error={error}
+                  onChange={setGoalInput}
+                  onGenerate={generateBlueprint}
                 />
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="blueprint"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.2 }}
+              className="flex flex-col md:flex-row h-full min-h-0 md:pl-4 md:pr-2 md:py-4 gap-4"
+            >
+              <EpicSidebar
+                blueprint={blueprint}
+                workspaceView={workspaceView}
+                activeEpicId={activeEpicId}
+                completedTaskIds={completedTaskIds}
+                onSelectOverview={() => setWorkspaceView("overview")}
+                onSelectEpic={(id) => {
+                  setActiveEpicId(id);
+                  setWorkspaceView("backlog");
+                }}
+                onDeleteEpic={deleteEpic}
+                onAddEpic={addEpic}
+              />
 
-                <section className="flex-1 min-h-0 flex flex-col overflow-hidden">
-                    {activeEpic ? (
-                    <EpicCanvas
-                      activeEpic={activeEpic}
-                      epicIndex={blueprint.epics.findIndex((e) => e.epicId === activeEpic.epicId)}
-                      stories={activeStories}
-                      gherkinScenarios={blueprint.gherkinScenarios}
-                      tasks={blueprint.tasks}
-                      completedTaskIds={completedTaskIds}
-                      expandedStoryId={expandedStoryId}
-                      onSetExpandedStory={setExpandedStoryId}
-                      onUpdateEpicField={(field: keyof Epic, value: Epic[keyof Epic]) =>
+              <section className="flex-1 min-h-0 min-w-0 flex flex-col overflow-hidden rounded-2xl border border-rule-soft bg-paper/80">
+                {workspaceView === "overview" ? (
+                  <OverviewPanel
+                    blueprint={blueprint}
+                    onOpenEpic={(id) => {
+                      setActiveEpicId(id);
+                      setWorkspaceView("backlog");
+                    }}
+                  />
+                ) : activeEpic ? (
+                  <EpicCanvas
+                    activeEpic={activeEpic}
+                    epicIndex={blueprint.epics.findIndex((e) => e.epicId === activeEpic.epicId)}
+                    stories={activeStories}
+                    gherkinScenarios={blueprint.gherkinScenarios}
+                    tasks={blueprint.tasks}
+                    completedTaskIds={completedTaskIds}
+                    expandedStoryId={expandedStoryId}
+                    onSetExpandedStory={setExpandedStoryId}
+                    onUpdateEpicField={(field: keyof Epic, value: Epic[keyof Epic]) =>
                       updateEpic(activeEpic.epicId, { [field]: value } as Partial<Epic>)
-                      }
-                      onAddStory={() => addStory(activeEpic.epicId)}
-                      onReorderStories={(stories: UserStory[]) => reorderStories(activeEpic.epicId, stories)}
-                      onUpdateStory={(storyId: string, updates: Partial<UserStory>) => updateStory(storyId, updates)}
-                      onDeleteStory={deleteStory}
-                      onToggleTask={toggleTask}
-                    />
-                    ) : (
-                    <div className="flex-1 flex items-center justify-center font-serif italic text-ink-3 text-lg">
-                      Select an epic from the margin to begin…
-                    </div>
-                    )}
-                </section>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+                    }
+                    onAddStory={() => addStory(activeEpic.epicId)}
+                    onReorderStories={(stories: UserStory[]) =>
+                      reorderStories(activeEpic.epicId, stories)
+                    }
+                    onUpdateStory={(storyId: string, updates: Partial<UserStory>) =>
+                      updateStory(storyId, updates)
+                    }
+                    onDeleteStory={deleteStory}
+                    onToggleTask={toggleTask}
+                  />
+                ) : (
+                  <div className="flex-1 flex items-center justify-center font-serif italic text-ink-3 text-lg">
+                    Select an epic to open the backlog
+                  </div>
+                )}
+              </section>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
 
       <Tweaks
@@ -380,4 +340,3 @@ export default function App() {
 // re-export so unused-warnings stay clean if anyone reaches in
 export type { Task };
 
-// export App

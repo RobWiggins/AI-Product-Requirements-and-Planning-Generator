@@ -40,19 +40,14 @@ export function EpicCanvas({
   const c = colorForEpic(epicIndex);
 
   return (
-    <div className="flex flex-col h-full min-h-0 gap-6">
-      {/* Editorial epic header — colored eyebrow + display serif */}
-      <div className="shrink-0 animate-in fade-in slide-in-from-left duration-500">
-        <div className="flex items-baseline gap-3.5 mb-4">
+    <div className="flex flex-col h-full min-h-0">
+      <div className="shrink-0 px-6 lg:px-10 pt-7 pb-5 border-b border-rule-soft bg-paper/70">
+        <div className="flex flex-wrap items-center gap-3 mb-4">
           <span
             className="font-mono text-[11px] uppercase tracking-[0.14em] inline-flex items-center gap-2"
             style={{ color: c.ink }}
           >
-            <span
-              className="w-2 h-2 rounded-full"
-              style={{ background: c.fg }}
-              aria-hidden
-            />
+            <span className="w-2 h-2 rounded-full" style={{ background: c.fg }} aria-hidden />
             Epic {String(epicIndex + 1).padStart(2, "0")}
           </span>
           <span
@@ -62,10 +57,13 @@ export function EpicCanvas({
           >
             {activeEpic.priority} priority
           </span>
-          <div className="flex-1 h-px bg-rule translate-y-[-6px]" />
+          <span className="font-mono text-[11px] text-ink-3">
+            {stories.length} {stories.length === 1 ? "story" : "stories"}
+          </span>
           <button
+            type="button"
             onClick={onAddStory}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-ink text-paper text-[12px] font-body hover:bg-accent-ink transition-colors"
+            className="ml-auto inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-ink text-paper text-[13px] font-ui hover:bg-accent-ink transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
             Add story
@@ -73,7 +71,7 @@ export function EpicCanvas({
         </div>
 
         <h2
-          className="font-serif text-[36px] font-medium tracking-[-0.015em] leading-[1.1] text-ink outline-none mb-3 focus:text-accent-ink transition-colors"
+          className="font-serif text-[clamp(26px,3vw,36px)] font-medium tracking-[-0.015em] leading-[1.15] text-ink outline-none mb-2 focus:text-accent-ink transition-colors"
           contentEditable
           suppressContentEditableWarning
           onBlur={(e) => onUpdateEpicField("title", e.currentTarget.innerText)}
@@ -82,7 +80,7 @@ export function EpicCanvas({
         </h2>
 
         <p
-          className="font-body text-[17px] leading-[1.55] text-ink-2 max-w-3xl outline-none focus:text-ink transition-colors"
+          className="font-ui text-[16px] leading-[1.6] text-ink-2 max-w-3xl outline-none focus:text-ink transition-colors"
           contentEditable
           suppressContentEditableWarning
           onBlur={(e) => onUpdateEpicField("description", e.currentTarget.innerText)}
@@ -91,16 +89,16 @@ export function EpicCanvas({
         </p>
       </div>
 
-      {/* Story stack */}
-      <div className="flex-1 min-h-0 overflow-y-auto pr-2 custom-scrollbar">
+      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-6 lg:px-10 py-6">
         {stories.length === 0 ? (
-          <div className="py-12 text-center rule-dashed border-b pb-12">
+          <div className="py-16 text-center rounded-2xl border border-dashed border-rule">
             <p className="font-serif italic text-[16px] text-ink-3 mb-4">
-              No stories yet — the margin awaits a first thought.
+              No stories in this epic yet.
             </p>
             <button
+              type="button"
               onClick={onAddStory}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-rule text-ink-2 hover:text-ink hover:border-accent/40 hover:bg-accent-wash/40 text-[13px] font-body transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-rule text-ink-2 hover:text-ink hover:border-accent/40 hover:bg-accent-wash/40 text-[13px] font-ui transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />
               Draft the first story
@@ -111,7 +109,7 @@ export function EpicCanvas({
             axis="y"
             values={stories}
             onReorder={onReorderStories}
-            className="flex flex-col"
+            className="flex flex-col gap-3"
           >
             {stories.map((story, idx) => (
               <StoryCard
@@ -119,7 +117,7 @@ export function EpicCanvas({
                 story={story}
                 index={idx}
                 accentClasses={c}
-                gherkin={gherkinScenarios.find((g) => g.storyId === story.storyId) ?? null}
+                gherkins={gherkinScenarios.filter((g) => g.storyId === story.storyId)}
                 tasks={tasks.filter((t) => t.storyId === story.storyId)}
                 completedTaskIds={completedTaskIds}
                 isExpanded={expandedStoryId === story.storyId}
