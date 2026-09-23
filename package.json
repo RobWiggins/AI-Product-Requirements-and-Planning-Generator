@@ -8,9 +8,9 @@
     "dev:client": "npm run dev --workspace=client",
     "build:server": "npm run build --workspace=server",
     "build:client": "npm run build --workspace=client",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test": "jest --config jest.config.ts",
+    "test:watch": "jest --watch --config jest.config.ts",
+    "test:coverage": "jest --coverage --config jest.config.ts"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",

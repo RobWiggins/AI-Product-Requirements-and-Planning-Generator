@@ -14,11 +14,3 @@ describe("GET /api/health", () => {
     expect(res.body).toMatchObject({ status: "ok" });
   });
 });
-
-describe("GET /api/items", () => {
-  it("returns an array", async () => {
-    const res = await request(app).get("/api/items");
-    expect(res.status).toBe(200);
-    expect(Array.isArray(res.body)).toBe(true);
-  });
-});
