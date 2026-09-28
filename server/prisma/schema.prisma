@@ -1,0 +1,196 @@
+// Prisma schema for the StoryFlow database.
+//
+// Models map 1:1 onto the tables created by server/src/migrations/*.sql.
+// Field names are camelCase (matching the API / client types); @map / @@map
+// bind them to the snake_case columns and tables in PostgreSQL.
+//
+//   users ─1:N─ projects ─1:1─ product_requirements_documents
+//                        ├─1:N─ epics ─1:N─ user_stories ─1:N─ gherkin_scenarios
+//                        │                              └─1:N─ tasks
+//                        └─1:N─ priorities
+//
+// Regenerate the client after editing:  npm run prisma:generate --workspace=server
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Application account. Passwords are stored hashed; never return passwordHash
+/// from the API (use `select` / `omit` in queries).
+model User {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email        String   @unique
+  name         String
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  projects Project[]
+
+  @@map("users")
+}
+
+/// One generated ProjectBlueprint. Children cascade-delete with the project.
+model Project {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  projectName String   @map("project_name")
+  description String   @default("")
+  version     String   @default("1.0.0")
+  /// Legacy embedded PRD. Superseded by ProductRequirementsDocument; kept until
+  /// the API is switched over (see migration 002).
+  prd         Json     @default("{}") @db.JsonB
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user                        User                         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  productRequirementsDocument ProductRequirementsDocument?
+  epics                       Epic[]
+  userStories                 UserStory[]
+  gherkinScenarios            GherkinScenario[]
+  tasks                       Task[]
+  priorities                  Priority[]
+
+  @@index([userId], map: "idx_projects_user_id")
+  @@map("projects")
+}
+
+/// 1:1 with Project (enforced by the unique projectId).
+model ProductRequirementsDocument {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId      String   @unique @map("project_id") @db.Uuid
+  overview       String   @default("")
+  targetAudience String   @default("") @map("target_audience")
+  scope          String   @default("")
+  /// string[] stored as a jsonb array
+  objectives     Json     @default("[]") @db.JsonB
+  /// string[] stored as a jsonb array
+  successMetrics Json     @default("[]") @map("success_metrics") @db.JsonB
+  /// string[] stored as a jsonb array
+  outOfScope     Json     @default("[]") @map("out_of_scope") @db.JsonB
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("product_requirements_documents")
+}
+
+/// Business-facing ids (epicId "E-001", storyId "US-001", ...) come from the
+/// model output and are unique per project, not globally. Child rows link to
+/// their parent with a composite (projectId, <parentId>) relation.
+model Epic {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId   String   @map("project_id") @db.Uuid
+  epicId      String   @map("epic_id")
+  title       String
+  description String   @default("")
+  /// "High" | "Medium" | "Low" (CHECK constraint in the database)
+  priority    String
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  userStories UserStory[]
+
+  @@unique([projectId, epicId])
+  @@index([projectId], map: "idx_epics_project_id")
+  @@map("epics")
+}
+
+model UserStory {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId          String   @map("project_id") @db.Uuid
+  storyId            String   @map("story_id")
+  epicId             String   @map("epic_id")
+  title              String
+  asA                String   @default("") @map("as_a")
+  iWant              String   @default("") @map("i_want")
+  soThat             String   @default("") @map("so_that")
+  /// "High" | "Medium" | "Low" (CHECK constraint in the database)
+  priority           String
+  /// string[] stored as a jsonb array
+  acceptanceCriteria Json     @default("[]") @map("acceptance_criteria") @db.JsonB
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  project          Project           @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  epic             Epic              @relation(fields: [projectId, epicId], references: [projectId, epicId], onDelete: Cascade)
+  gherkinScenarios GherkinScenario[]
+  tasks            Task[]
+
+  @@unique([projectId, storyId])
+  @@index([projectId], map: "idx_stories_project_id")
+  @@map("user_stories")
+}
+
+model GherkinScenario {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId  String   @map("project_id") @db.Uuid
+  scenarioId String   @map("scenario_id")
+  storyId    String   @map("story_id")
+  feature    String   @default("")
+  scenario   String   @default("")
+  given      String   @default("") @map("given_step")
+  when       String   @default("") @map("when_step")
+  then       String   @default("") @map("then_step")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  userStory UserStory @relation(fields: [projectId, storyId], references: [projectId, storyId], onDelete: Cascade)
+
+  @@unique([projectId, scenarioId])
+  @@index([projectId], map: "idx_gherkin_project_id")
+  @@map("gherkin_scenarios")
+}
+
+model Task {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId      String   @map("project_id") @db.Uuid
+  taskId         String   @map("task_id")
+  storyId        String   @map("story_id")
+  title          String
+  description    String   @default("")
+  estimatedHours Decimal  @default(0) @map("estimated_hours") @db.Decimal
+  /// "High" | "Medium" | "Low" (CHECK constraint in the database)
+  priority       String
+  /// taskId[] stored as a jsonb array
+  dependencies   Json     @default("[]") @db.JsonB
+  completed      Boolean  @default(false)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  userStory UserStory @relation(fields: [projectId, storyId], references: [projectId, storyId], onDelete: Cascade)
+
+  @@unique([projectId, taskId])
+  @@index([projectId], map: "idx_tasks_project_id")
+  @@map("tasks")
+}
+
+/// Prioritisation rationale. itemId points at an epicId / storyId / taskId in
+/// the same project (polymorphic, so not a foreign key).
+model Priority {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId  String   @map("project_id") @db.Uuid
+  priorityId String   @map("priority_id")
+  /// "High" | "Medium" | "Low" (CHECK constraint in the database)
+  level      String
+  itemId     String   @map("item_id")
+  rationale  String   @default("")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([projectId, priorityId])
+  @@index([projectId], map: "idx_priorities_project_id")
+  @@map("priorities")
+}
