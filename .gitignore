@@ -47,6 +47,9 @@ web_modules/
 # TypeScript cache
 *.tsbuildinfo
 
+# Prisma client output (rebuilt by `prisma generate`)
+server/src/generated/
+
 # tsc emit next to TS sources (Jest must see only jest.config.ts)
 jest.config.js
 jest.config.js.map
