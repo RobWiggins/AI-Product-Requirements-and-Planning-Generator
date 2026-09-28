@@ -21,19 +21,65 @@ datasource db {
   provider = "postgresql"
 }
 
-/// Application account. Passwords are stored hashed; never return passwordHash
-/// from the API (use `select` / `omit` in queries).
+/// Internal user: the UUID that owns all application data.
+///
+///   Visitor ── Guest / Google / GitHub ──▶ AuthIdentity ──▶ User (this) ──▶ Projects…
+///
+/// Guests are real users flagged `isGuest` with no AuthIdentity; when they later
+/// sign in with a provider the identity is attached and the flag is cleared, so
+/// their data carries over.
 model User {
-  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email        String   @unique
-  name         String
-  passwordHash String   @map("password_hash")
-  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  /// Null for guests. Unique when present (Postgres allows multiple NULLs).
+  email     String?  @unique
+  name      String
+  avatarUrl String?  @map("avatar_url")
+  isGuest   Boolean  @default(false) @map("is_guest")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  projects Project[]
+  identities AuthIdentity[]
+  sessions   Session[]
+  projects   Project[]
 
   @@map("users")
+}
+
+/// One external login bound to a User. A user may have several (Google + GitHub).
+model AuthIdentity {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String   @map("user_id") @db.Uuid
+  /// "google" | "github" (CHECK constraint in the database)
+  provider          String
+  /// The provider's stable subject id (Google `sub`, GitHub numeric id).
+  providerAccountId String   @map("provider_account_id")
+  /// Email as reported by the provider at sign-in time.
+  email             String?
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId], map: "idx_auth_identities_user_id")
+  @@map("auth_identities")
+}
+
+/// Server-side session. The browser cookie holds a random token; only its
+/// SHA-256 hash is stored, so a database leak cannot be replayed.
+model Session {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  tokenHash  String   @unique @map("token_hash")
+  expiresAt  DateTime @map("expires_at") @db.Timestamptz(6)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  lastSeenAt DateTime @default(now()) @map("last_seen_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([userId], map: "idx_sessions_user_id")
+  @@index([expiresAt], map: "idx_sessions_expires_at")
+  @@map("sessions")
 }
 
 /// One generated ProjectBlueprint. Children cascade-delete with the project.
@@ -89,6 +135,8 @@ model Epic {
   id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   projectId   String   @map("project_id") @db.Uuid
   epicId      String   @map("epic_id")
+  /// Display order within the project (0-based), preserved across saves.
+  position    Int      @default(0)
   title       String
   description String   @default("")
   /// "High" | "Medium" | "Low" (CHECK constraint in the database)
@@ -108,6 +156,8 @@ model UserStory {
   id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   projectId          String   @map("project_id") @db.Uuid
   storyId            String   @map("story_id")
+  /// Display order within the project (0-based), preserved across saves.
+  position           Int      @default(0)
   epicId             String   @map("epic_id")
   title              String
   asA                String   @default("") @map("as_a")
@@ -134,6 +184,8 @@ model GherkinScenario {
   id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   projectId  String   @map("project_id") @db.Uuid
   scenarioId String   @map("scenario_id")
+  /// Display order within the project (0-based), preserved across saves.
+  position   Int      @default(0)
   storyId    String   @map("story_id")
   feature    String   @default("")
   scenario   String   @default("")
@@ -155,6 +207,8 @@ model Task {
   id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   projectId      String   @map("project_id") @db.Uuid
   taskId         String   @map("task_id")
+  /// Display order within the project (0-based), preserved across saves.
+  position       Int      @default(0)
   storyId        String   @map("story_id")
   title          String
   description    String   @default("")
@@ -181,6 +235,8 @@ model Priority {
   id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   projectId  String   @map("project_id") @db.Uuid
   priorityId String   @map("priority_id")
+  /// Display order within the project (0-based), preserved across saves.
+  position   Int      @default(0)
   /// "High" | "Medium" | "Low" (CHECK constraint in the database)
   level      String
   itemId     String   @map("item_id")

@@ -14,7 +14,6 @@ beforeAll(async () => {
     data: {
       email,
       name: "Prisma Test",
-      passwordHash: "not-a-real-hash",
       projects: {
         create: {
           projectName: "Prisma Test Project",

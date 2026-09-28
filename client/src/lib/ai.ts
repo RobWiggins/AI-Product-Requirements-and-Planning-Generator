@@ -1,24 +1,15 @@
-import Anthropic from "@anthropic-ai/sdk";
-
 import { z } from "zod";
 
-export const ai = new Anthropic({dangerouslyAllowBrowser: true})
-
-export const client = new Anthropic({dangerouslyAllowBrowser: true});
-
-
-export const SYSTEM_INSTRUCTION = `You are StoryMorph, an elite technical PM and systems architect.
-You transform abstract project goals into production-ready backlogs.
-Generate realistic UUIDs for IDs.
-Use professional Gherkin syntax.
-Tasks should be technical and actionable.
-Ensure Epics represent high-level architectural domains.
-User stories must follow the 'As a [role], I want [action], so that [value]' format.`;
+/**
+ * ProjectBlueprint types shared across the UI.
+ *
+ * Generation happens on the server (GET /api/search); the client never talks
+ * to Anthropic directly, so no API key is shipped in the bundle. These schemas
+ * mirror server/src/schemas/claudeResponse.ts.
+ */
 
 export const PriorityLevel = z.enum(["High", "Medium", "Low"]);
 
-// TODO If kept, need to add overview panel information support aka objectives, success metrics, scope, out of scope, etc.
-// to the schema, API, and database.
 export const ProductRequirementsDocumentSchema = z.object({
   overview: z.string(),
   objectives: z.array(z.string()),
@@ -46,7 +37,7 @@ export const UserStorySchema = z.object({
   acceptanceCriteria: z.array(z.string()),
 });
 
-const GherkinScenarioSchema = z.object({
+export const GherkinScenarioSchema = z.object({
   scenarioId: z.string(),
   storyId: z.string(),
   feature: z.string(),
@@ -56,7 +47,6 @@ const GherkinScenarioSchema = z.object({
   then: z.string(),
 });
 
-// TODO add support for completion status
 export const TaskSchema = z.object({
   taskId: z.string(),
   storyId: z.string(),
@@ -86,16 +76,6 @@ export const ProjectBlueprintSchema = z.object({
   priorities: z.array(PriorityItemSchema),
 });
 
-export const ClaudeContentItemSchema = z.object({
-  type: z.literal("text"),
-  text: z.string(),
-});
-
-export const ClaudeResponseSchema = z.object({
-  content: z.array(ClaudeContentItemSchema),
-});
-
-export type ClaudeResponse = z.infer<typeof ClaudeResponseSchema>;
 export type ProjectBlueprint = z.infer<typeof ProjectBlueprintSchema>;
 export type Epic = z.infer<typeof EpicSchema>;
 export type UserStory = z.infer<typeof UserStorySchema>;

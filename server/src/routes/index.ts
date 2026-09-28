@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { pool } from "../db";
+import { requireAuth } from "../auth/middleware";
 
 export const router = Router();
 
@@ -70,13 +71,12 @@ router.get("/health", async (_req: Request, res: Response) => {
   }
 });
 
-router.get("/search", async (req: Request, res: Response) => {
+// Generation costs money: only signed-in users (guests included) may call it.
+router.get("/search", requireAuth, async (req: Request, res: Response) => {
   const projectDescription =
     typeof req.query.description === "string"
       ? decodeURIComponent(req.query.description)
       : undefined;
-
-  console.log(projectDescription);
 
   if (
     projectDescription === undefined ||

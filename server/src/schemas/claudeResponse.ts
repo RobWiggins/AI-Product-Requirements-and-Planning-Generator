@@ -39,7 +39,7 @@ const GherkinScenarioSchema = z.object({
   then: z.string(),
 });
 
-const TaskSchema = z.object({
+export const TaskSchema = z.object({
   taskId: z.string(),
   storyId: z.string(),
   title: z.string(),
@@ -49,7 +49,7 @@ const TaskSchema = z.object({
   dependencies: z.array(z.string()),
 });
 
-const PriorityItemSchema = z.object({
+export const PriorityItemSchema = z.object({
   priorityId: z.string(),
   level: PriorityLevel,
   itemId: z.string(),

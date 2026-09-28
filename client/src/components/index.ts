@@ -8,3 +8,7 @@ export type { TweakSettings } from './Tweaks';
 export type { WorkspaceView } from './Header';
 export { default as StoryCard } from './StoryCard';
 export { default as OverviewPanel } from './OverviewPanel';
+export { default as LoginScreen } from './LoginScreen';
+export { default as UserMenu } from './UserMenu';
+export { default as ProjectList } from './ProjectList';
+export { default as Workspace } from './Workspace';

@@ -8,9 +8,11 @@ interface Props {
   workspaceView: WorkspaceView;
   onWorkspaceView: (view: WorkspaceView) => void;
   onClear: () => void;
+  /** Right-aligned account controls (e.g. <UserMenu />). */
+  accountMenu?: React.ReactNode;
 }
 
-export function Header({ blueprint, workspaceView, onWorkspaceView, onClear }: Props) {
+export function Header({ blueprint, workspaceView, onWorkspaceView, onClear, accountMenu }: Props) {
   return (
     <header className="sticky top-0 z-20 border-b border-rule-soft bg-paper/90 backdrop-blur-md px-5 sm:px-8 py-3.5 flex items-center justify-between gap-4">
       <div className="flex items-center gap-5 min-w-0">
@@ -86,6 +88,8 @@ export function Header({ blueprint, workspaceView, onWorkspaceView, onClear }: P
             Product plans from a paragraph
           </span>
         )}
+
+        {accountMenu}
       </div>
     </header>
   );
