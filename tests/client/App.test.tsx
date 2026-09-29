@@ -3,8 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 import App from "@client/App";
-import authReducer from "@client/store/slices/authSlice";
-import projectsReducer from "@client/store/slices/projectsSlice";
+import { rootReducer } from "@client/store";
 
 /**
  * jsdom has no `fetch`; stand in for the API with a tiny router keyed on
@@ -58,7 +57,7 @@ function mockApi(overrides: Record<string, Route> = {}) {
 }
 
 function renderApp() {
-  const store = configureStore({ reducer: { auth: authReducer, projects: projectsReducer } });
+  const store = configureStore({ reducer: rootReducer });
   return render(
     <Provider store={store}>
       <App />

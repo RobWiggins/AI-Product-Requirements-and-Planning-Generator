@@ -12,7 +12,7 @@ const config: Config = {
     {
       displayName: "client",
       testEnvironment: "jsdom",
-      testMatch: ["<rootDir>/tests/client/**/*.test.tsx"],
+      testMatch: ["<rootDir>/tests/client/**/*.test.ts?(x)"],
       transform: { "^.+\\.tsx?$": ["ts-jest", { tsconfig: "<rootDir>/tsconfig.json" }] },
       moduleNameMapper: {
         "^@client/(.*)$": "<rootDir>/client/src/$1",

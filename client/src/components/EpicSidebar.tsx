@@ -1,32 +1,47 @@
 import { ChevronRight, FileText, Plus, Trash2 } from "lucide-react";
-import { ProjectBlueprint } from "../lib/ai";
+import type { Epic } from "../lib/ai";
 import { colorForEpic } from "../lib/palette";
+import { useAppDispatch, useAppSelector } from "../hooks";
+import {
+  epicAdded,
+  epicDeleted,
+  selectAllEpics,
+  selectBlueprintMeta,
+  selectStoryCountByEpic,
+  selectTaskProgress,
+} from "../store/slices/blueprintSlice";
 import type { WorkspaceView } from "./Header";
 
 interface Props {
-  blueprint: ProjectBlueprint;
   workspaceView: WorkspaceView;
   activeEpicId: string | null;
-  completedTaskIds: Set<string>;
   onSelectOverview: () => void;
   onSelectEpic: (id: string) => void;
-  onDeleteEpic: (id: string) => void;
-  onAddEpic: () => void;
 }
 
-export function EpicSidebar({
-  blueprint,
-  workspaceView,
-  activeEpicId,
-  completedTaskIds,
-  onSelectOverview,
-  onSelectEpic,
-  onDeleteEpic,
-  onAddEpic,
-}: Props) {
-  const total = blueprint.tasks.length;
-  const done = blueprint.tasks.filter((t) => completedTaskIds.has(t.taskId)).length;
+export function newEpic(): Epic {
+  return {
+    epicId: crypto.randomUUID(),
+    title: "New Epic",
+    description: "Describe the high-level objective of this domain…",
+    priority: "Medium",
+  };
+}
+
+export function EpicSidebar({ workspaceView, activeEpicId, onSelectOverview, onSelectEpic }: Props) {
+  const dispatch = useAppDispatch();
+  const meta = useAppSelector(selectBlueprintMeta);
+  const epics = useAppSelector(selectAllEpics);
+  const storyCounts = useAppSelector(selectStoryCountByEpic);
+  const { total, done } = useAppSelector(selectTaskProgress);
   const completion = total ? (done / total) * 100 : 0;
+
+  const onAddEpic = () => {
+    const epic = newEpic();
+    dispatch(epicAdded(epic));
+    onSelectEpic(epic.epicId);
+  };
+  const onDeleteEpic = (id: string) => dispatch(epicDeleted(id));
 
   return (
     <aside className="w-[17.5rem] xl:w-80 shrink-0 flex flex-col gap-4 h-full min-h-0">
@@ -44,7 +59,7 @@ export function EpicSidebar({
           Overview
         </span>
         <p className="font-ui text-[13px] text-ink-2 mt-1.5 leading-snug line-clamp-2">
-          {blueprint.description}
+          {meta?.description}
         </p>
       </button>
 
@@ -53,18 +68,16 @@ export function EpicSidebar({
           <span className="eyebrow">Epics</span>
           <div className="flex-1 h-px bg-rule-soft" />
           <span className="font-mono text-[11px] text-ink-3">
-            {blueprint.epics.length.toString().padStart(2, "0")}
+            {epics.length.toString().padStart(2, "0")}
           </span>
         </div>
 
         <div className="flex-1 overflow-y-auto custom-scrollbar -mr-1 pr-1 mb-3">
           <ul className="flex flex-col gap-1">
-            {blueprint.epics.map((epic, idx) => {
+            {epics.map((epic, idx) => {
               const active = workspaceView === "backlog" && activeEpicId === epic.epicId;
               const c = colorForEpic(idx);
-              const storyCount = blueprint.userStories.filter(
-                (s) => s.epicId === epic.epicId
-              ).length;
+              const storyCount = storyCounts[epic.epicId] ?? 0;
               return (
                 <li key={epic.epicId} className="relative group/epic">
                   <button

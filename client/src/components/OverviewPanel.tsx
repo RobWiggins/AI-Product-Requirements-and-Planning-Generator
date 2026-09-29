@@ -1,14 +1,18 @@
 import { Flag, Target, Users, CircleSlash, ListChecks } from "lucide-react";
-import { ProjectBlueprint } from "../lib/ai";
 import { colorForEpic, PRIORITY_CHIP } from "../lib/palette";
+import { useAppSelector } from "../hooks";
+import { selectAllEpics, selectBlueprintMeta, selectStoryCountByEpic } from "../store/slices/blueprintSlice";
 
 interface Props {
-  blueprint: ProjectBlueprint;
   onOpenEpic: (epicId: string) => void;
 }
 
-export function OverviewPanel({ blueprint, onOpenEpic }: Props) {
-  const prd = blueprint.productRequirementsDocument;
+export function OverviewPanel({ onOpenEpic }: Props) {
+  const meta = useAppSelector(selectBlueprintMeta);
+  const epics = useAppSelector(selectAllEpics);
+  const storyCounts = useAppSelector(selectStoryCountByEpic);
+  if (!meta) return null;
+  const prd = meta.productRequirementsDocument;
 
   return (
     <div className="h-full overflow-y-auto custom-scrollbar px-6 lg:px-10 py-8">
@@ -16,10 +20,10 @@ export function OverviewPanel({ blueprint, onOpenEpic }: Props) {
         <header className="flex flex-col gap-3">
           <span className="eyebrow">Product overview</span>
           <h2 className="font-serif text-[clamp(28px,4vw,44px)] font-medium tracking-[-0.02em] leading-[1.12] text-ink">
-            {blueprint.projectName}
+            {meta.projectName}
           </h2>
           <p className="font-ui text-[16px] leading-relaxed text-ink-2 max-w-3xl">
-            {prd?.overview ?? blueprint.description}
+            {prd?.overview ?? meta.description}
           </p>
         </header>
 
@@ -80,10 +84,9 @@ export function OverviewPanel({ blueprint, onOpenEpic }: Props) {
             </span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {blueprint.epics.map((epic, idx) => {
+            {epics.map((epic, idx) => {
               const c = colorForEpic(idx);
-              const storyCount = blueprint.userStories.filter((s) => s.epicId === epic.epicId)
-                .length;
+              const storyCount = storyCounts[epic.epicId] ?? 0;
               return (
                 <button
                   key={epic.epicId}

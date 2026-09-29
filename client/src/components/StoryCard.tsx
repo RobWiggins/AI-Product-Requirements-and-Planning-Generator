@@ -10,38 +10,36 @@ import {
   Link2,
   Trash2,
 } from "lucide-react";
-import { GherkinScenario, Task, UserStory } from "../lib/ai";
+import { UserStory } from "../lib/ai";
 import { EpicColor, PRIORITY_CHIP, PRIORITY_DOT } from "../lib/palette";
+import { useAppDispatch, useAppSelector } from "../hooks";
+import {
+  selectScenariosForStory,
+  selectTasksForStory,
+  storyDeleted,
+  storyUpdated,
+  taskToggled,
+} from "../store/slices/blueprintSlice";
 
 interface Props {
   story: UserStory;
   index: number;
   accentClasses: EpicColor;
-  gherkins: GherkinScenario[];
-  tasks: Task[];
-  completedTaskIds: Set<string>;
   isExpanded: boolean;
   onToggleExpand: () => void;
-  onUpdate: (updates: Partial<UserStory>) => void;
-  onDelete: () => void;
-  onToggleTask: (taskId: string) => void;
 }
 
-export function StoryCard({
-  story,
-  index,
-  accentClasses,
-  gherkins,
-  tasks,
-  completedTaskIds,
-  isExpanded,
-  onToggleExpand,
-  onUpdate,
-  onDelete,
-  onToggleTask,
-}: Props) {
+export function StoryCard({ story, index, accentClasses, isExpanded, onToggleExpand }: Props) {
+  const dispatch = useAppDispatch();
+  const tasks = useAppSelector((s) => selectTasksForStory(s, story.storyId));
+  const gherkins = useAppSelector((s) => selectScenariosForStory(s, story.storyId));
+
+  const onUpdate = (changes: Partial<UserStory>) => dispatch(storyUpdated({ id: story.storyId, changes }));
+  const onDelete = () => dispatch(storyDeleted(story.storyId));
+  const onToggleTask = (taskId: string) => dispatch(taskToggled(taskId));
+
   const totalEstHours = tasks.reduce((sum, t) => sum + (t.estimatedHours ?? 0), 0);
-  const completedHere = tasks.filter((t) => completedTaskIds.has(t.taskId)).length;
+  const completedHere = tasks.filter((t) => t.completed).length;
 
   return (
     <Reorder.Item
@@ -279,7 +277,7 @@ export function StoryCard({
                 ) : (
                   <div className="flex flex-col gap-1.5">
                     {tasks.map((task) => {
-                      const done = completedTaskIds.has(task.taskId);
+                      const done = task.completed;
                       return (
                         <button
                           key={task.taskId}

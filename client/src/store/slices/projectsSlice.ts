@@ -40,9 +40,14 @@ export const fetchProjects = createAsyncThunk("projects/fetch", async (_, { reje
   }
 });
 
+/**
+ * `revision` is the blueprint slice's edit counter at the time of the save.
+ * The blueprint slice reads it from `action.meta.arg` on success so it can tell
+ * whether edits made during the request still need saving.
+ */
 export const saveNewProject = createAsyncThunk(
   "projects/create",
-  async (blueprint: StoredBlueprint, { rejectWithValue }) => {
+  async ({ blueprint }: { blueprint: StoredBlueprint; revision?: number }, { rejectWithValue }) => {
     try {
       return await projectsApi.create(blueprint);
     } catch (err) {
@@ -53,7 +58,10 @@ export const saveNewProject = createAsyncThunk(
 
 export const updateProject = createAsyncThunk(
   "projects/update",
-  async ({ id, blueprint }: { id: string; blueprint: StoredBlueprint }, { rejectWithValue }) => {
+  async (
+    { id, blueprint }: { id: string; blueprint: StoredBlueprint; revision?: number },
+    { rejectWithValue },
+  ) => {
     try {
       return await projectsApi.replace(id, blueprint);
     } catch (err) {

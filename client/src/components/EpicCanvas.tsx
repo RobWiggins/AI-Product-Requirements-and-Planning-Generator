@@ -1,43 +1,53 @@
 import { Plus } from "lucide-react";
 import { Reorder } from "motion/react";
-import { Epic, GherkinScenario, Task, UserStory } from "../lib/ai";
+import { Epic, UserStory } from "../lib/ai";
 import { StoryCard } from "./StoryCard";
 import { colorForEpic, PRIORITY_CHIP } from "../lib/palette";
+import { useAppDispatch, useAppSelector } from "../hooks";
+import {
+  epicUpdated,
+  selectEpicIndex,
+  selectStoriesForEpic,
+  storiesReordered,
+  storyAdded,
+} from "../store/slices/blueprintSlice";
 
 interface Props {
   activeEpic: Epic;
-  epicIndex: number;
-  stories: UserStory[];
-  gherkinScenarios: GherkinScenario[];
-  tasks: Task[];
-  completedTaskIds: Set<string>;
   expandedStoryId: string | null;
   onSetExpandedStory: (id: string | null) => void;
-  onUpdateEpicField: (field: "title" | "description", value: string) => void;
-  onAddStory: () => void;
-  onReorderStories: (stories: UserStory[]) => void;
-  onUpdateStory: (storyId: string, updates: Partial<UserStory>) => void;
-  onDeleteStory: (storyId: string) => void;
-  onToggleTask: (taskId: string) => void;
 }
 
-export function EpicCanvas({
-  activeEpic,
-  epicIndex,
-  stories,
-  gherkinScenarios,
-  tasks,
-  completedTaskIds,
-  expandedStoryId,
-  onSetExpandedStory,
-  onUpdateEpicField,
-  onAddStory,
-  onReorderStories,
-  onUpdateStory,
-  onDeleteStory,
-  onToggleTask,
-}: Props) {
-  const c = colorForEpic(epicIndex);
+export function newStory(epicId: string): UserStory {
+  return {
+    storyId: crypto.randomUUID(),
+    epicId,
+    title: "New User Story",
+    asA: "user",
+    iWant: "to do something",
+    soThat: "I get value",
+    priority: "Medium",
+    acceptanceCriteria: ["Define the first acceptance criterion"],
+  };
+}
+
+export function EpicCanvas({ activeEpic, expandedStoryId, onSetExpandedStory }: Props) {
+  const dispatch = useAppDispatch();
+  const epicIndex = useAppSelector((s) => selectEpicIndex(s, activeEpic.epicId));
+  const stories = useAppSelector((s) => selectStoriesForEpic(s, activeEpic.epicId));
+  const c = colorForEpic(Math.max(0, epicIndex));
+
+  const onUpdateEpicField = (field: "title" | "description", value: string) =>
+    dispatch(epicUpdated({ id: activeEpic.epicId, changes: { [field]: value } }));
+
+  const onAddStory = () => {
+    const story = newStory(activeEpic.epicId);
+    dispatch(storyAdded(story));
+    onSetExpandedStory(story.storyId);
+  };
+
+  const onReorderStories = (reordered: UserStory[]) =>
+    dispatch(storiesReordered({ epicId: activeEpic.epicId, orderedIds: reordered.map((s) => s.storyId) }));
 
   return (
     <div className="flex flex-col h-full min-h-0">
@@ -117,16 +127,10 @@ export function EpicCanvas({
                 story={story}
                 index={idx}
                 accentClasses={c}
-                gherkins={gherkinScenarios.filter((g) => g.storyId === story.storyId)}
-                tasks={tasks.filter((t) => t.storyId === story.storyId)}
-                completedTaskIds={completedTaskIds}
                 isExpanded={expandedStoryId === story.storyId}
                 onToggleExpand={() =>
                   onSetExpandedStory(expandedStoryId === story.storyId ? null : story.storyId)
                 }
-                onUpdate={(updates) => onUpdateStory(story.storyId, updates)}
-                onDelete={() => onDeleteStory(story.storyId)}
-                onToggleTask={onToggleTask}
               />
             ))}
           </Reorder.Group>
