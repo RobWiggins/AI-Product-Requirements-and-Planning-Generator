@@ -22,6 +22,7 @@ import { saveNewProject, updateProject } from "./projectsSlice";
 export type EditableTask = Task & { completed: boolean };
 
 export type BlueprintMeta = Omit<ProjectBlueprint, "epics" | "userStories" | "gherkinScenarios" | "tasks">;
+export type ProductRequirements = ProjectBlueprint["productRequirementsDocument"];
 
 const epics = createEntityAdapter<Epic, string>({ selectId: (e) => e.epicId });
 const stories = createEntityAdapter<UserStory, string>({ selectId: (s) => s.storyId });
@@ -86,6 +87,13 @@ export const blueprintSlice = createSlice({
       };
     },
     blueprintCleared: () => initialState,
+
+    /** Patch the product requirements document (overview, audience, scope, lists). */
+    prdUpdated(state, { payload }: PayloadAction<Partial<ProductRequirements>>) {
+      if (!state.meta) return;
+      state.meta.productRequirementsDocument = { ...state.meta.productRequirementsDocument, ...payload };
+      touch(state);
+    },
 
     // ---- Epics ------------------------------------------------------------
     epicAdded(state, { payload }: PayloadAction<Epic>) {
@@ -179,6 +187,7 @@ export const blueprintSlice = createSlice({
 export const {
   blueprintLoaded,
   blueprintCleared,
+  prdUpdated,
   epicAdded,
   epicUpdated,
   epicDeleted,

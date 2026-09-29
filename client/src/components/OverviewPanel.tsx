@@ -1,44 +1,91 @@
-import { Flag, Target, Users, CircleSlash, ListChecks } from "lucide-react";
+import type { ReactNode } from "react";
+import { Flag, Target, Users, CircleSlash, ListChecks, Pencil, Plus, X } from "lucide-react";
 import { colorForEpic, PRIORITY_CHIP } from "../lib/palette";
-import { useAppSelector } from "../hooks";
-import { selectAllEpics, selectBlueprintMeta, selectStoryCountByEpic } from "../store/slices/blueprintSlice";
+import { useAppDispatch, useAppSelector } from "../hooks";
+import {
+  prdUpdated,
+  selectAllEpics,
+  selectBlueprintMeta,
+  selectStoryCountByEpic,
+  type ProductRequirements,
+} from "../store/slices/blueprintSlice";
+import EditableText from "./EditableText";
 
 interface Props {
   onOpenEpic: (epicId: string) => void;
 }
 
+const ADD_BTN =
+  "inline-flex items-center gap-1.5 mt-3 px-2.5 py-1.5 rounded-lg border border-dashed border-rule text-ink-3 hover:text-accent-ink hover:border-accent/40 hover:bg-accent-wash/40 font-mono text-[10px] uppercase tracking-[0.12em] transition-colors";
+
 export function OverviewPanel({ onOpenEpic }: Props) {
+  const dispatch = useAppDispatch();
   const meta = useAppSelector(selectBlueprintMeta);
   const epics = useAppSelector(selectAllEpics);
   const storyCounts = useAppSelector(selectStoryCountByEpic);
   if (!meta) return null;
   const prd = meta.productRequirementsDocument;
 
+  const patch = (changes: Partial<ProductRequirements>) => dispatch(prdUpdated(changes));
+  const setList = (key: "objectives" | "successMetrics" | "outOfScope", next: string[]) => patch({ [key]: next });
+
   return (
     <div className="h-full overflow-y-auto custom-scrollbar px-6 lg:px-10 py-8">
       <div className="max-w-6xl mx-auto flex flex-col gap-8">
         <header className="flex flex-col gap-3">
-          <span className="eyebrow">Product overview</span>
+          <div className="flex items-center justify-between gap-3">
+            <span className="eyebrow">Product overview</span>
+            <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-ink-3">
+              <Pencil className="w-3 h-3" />
+              Click any text to edit · saves automatically
+            </span>
+          </div>
           <h2 className="font-serif text-[clamp(28px,4vw,44px)] font-medium tracking-[-0.02em] leading-[1.12] text-ink">
             {meta.projectName}
           </h2>
-          <p className="font-ui text-[16px] leading-relaxed text-ink-2 max-w-3xl">
-            {prd?.overview ?? meta.description}
-          </p>
+          <EditableText
+            as="p"
+            value={prd.overview}
+            multiline
+            onCommit={(overview) => patch({ overview })}
+            placeholder={meta.description || "What does this product do?"}
+            aria-label="Product overview"
+            className="font-ui text-[16px] leading-relaxed text-ink-2 max-w-3xl"
+          />
         </header>
 
         <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <InfoCard
-            icon={Users}
-            label="Audience"
-            body={prd?.targetAudience ?? "Not specified"}
-          />
-          <InfoCard icon={Target} label="In scope" body={prd?.scope ?? "Not specified"} />
-          <InfoCard
-            icon={CircleSlash}
-            label="Out of scope"
-            body={(prd?.outOfScope ?? []).join(" · ") || "None listed"}
-          />
+          <InfoCard icon={Users} label="Audience">
+            <EditableText
+              as="p"
+              value={prd.targetAudience}
+              multiline
+              onCommit={(targetAudience) => patch({ targetAudience })}
+              placeholder="Who is this for?"
+              aria-label="Audience"
+              className="font-ui text-[14px] leading-relaxed text-ink"
+            />
+          </InfoCard>
+          <InfoCard icon={Target} label="In scope">
+            <EditableText
+              as="p"
+              value={prd.scope}
+              multiline
+              onCommit={(scope) => patch({ scope })}
+              placeholder="What is included?"
+              aria-label="In scope"
+              className="font-ui text-[14px] leading-relaxed text-ink"
+            />
+          </InfoCard>
+          <InfoCard icon={CircleSlash} label="Out of scope">
+            <StringList
+              items={prd.outOfScope}
+              onChange={(outOfScope) => setList("outOfScope", outOfScope)}
+              placeholder="Something this product will not do"
+              label="out of scope item"
+              marker="dash"
+            />
+          </InfoCard>
         </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -47,16 +94,13 @@ export function OverviewPanel({ onOpenEpic }: Props) {
               <Flag className="w-4 h-4 text-accent" />
               <h3 className="eyebrow text-ink-2">Objectives</h3>
             </div>
-            <ul className="flex flex-col gap-2.5 m-0 p-0 list-none">
-              {(prd?.objectives ?? []).map((item, i) => (
-                <li key={i} className="flex gap-3 font-ui text-[15px] text-ink leading-snug">
-                  <span className="font-mono text-[11px] text-ink-3 mt-0.5">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  {item}
-                </li>
-              ))}
-            </ul>
+            <StringList
+              items={prd.objectives}
+              onChange={(objectives) => setList("objectives", objectives)}
+              placeholder="Add an objective"
+              label="objective"
+              marker="number"
+            />
           </section>
 
           <section className="rounded-2xl border border-rule-soft bg-paper p-6 shadow-[0_1px_0_var(--color-rule-soft)]">
@@ -64,14 +108,13 @@ export function OverviewPanel({ onOpenEpic }: Props) {
               <ListChecks className="w-4 h-4 text-sage" />
               <h3 className="eyebrow text-ink-2">Success metrics</h3>
             </div>
-            <ul className="flex flex-col gap-2.5 m-0 p-0 list-none">
-              {(prd?.successMetrics ?? []).map((item, i) => (
-                <li key={i} className="flex gap-3 font-ui text-[15px] text-ink leading-snug">
-                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-sage shrink-0" />
-                  {item}
-                </li>
-              ))}
-            </ul>
+            <StringList
+              items={prd.successMetrics}
+              onChange={(successMetrics) => setList("successMetrics", successMetrics)}
+              placeholder="Add a metric"
+              label="success metric"
+              marker="dot"
+            />
           </section>
         </div>
 
@@ -130,11 +173,11 @@ export function OverviewPanel({ onOpenEpic }: Props) {
 function InfoCard({
   icon: Icon,
   label,
-  body,
+  children,
 }: {
   icon: typeof Users;
   label: string;
-  body: string;
+  children: ReactNode;
 }) {
   return (
     <article className="rounded-2xl border border-rule-soft bg-paper p-5">
@@ -142,8 +185,62 @@ function InfoCard({
         <Icon className="w-4 h-4 text-ink-3" />
         <span className="eyebrow">{label}</span>
       </div>
-      <p className="font-ui text-[14px] leading-relaxed text-ink m-0">{body}</p>
+      {children}
     </article>
+  );
+}
+
+function StringList({
+  items,
+  onChange,
+  placeholder,
+  label,
+  marker,
+}: {
+  items: string[];
+  onChange: (next: string[]) => void;
+  placeholder: string;
+  label: string;
+  marker: "number" | "dot" | "dash";
+}) {
+  const setAt = (i: number, text: string) => onChange(items.map((item, idx) => (idx === i ? text : item)));
+  const removeAt = (i: number) => onChange(items.filter((_, idx) => idx !== i));
+
+  return (
+    <div>
+      <ul className="flex flex-col gap-2 m-0 p-0 list-none">
+        {items.map((item, i) => (
+          <li key={i} className="group/row flex items-start gap-3 font-ui text-[15px] text-ink leading-snug">
+            {marker === "number" ? (
+              <span className="font-mono text-[11px] text-ink-3 mt-1 shrink-0">{String(i + 1).padStart(2, "0")}</span>
+            ) : marker === "dot" ? (
+              <span className="mt-2 w-1.5 h-1.5 rounded-full bg-sage shrink-0" />
+            ) : (
+              <span className="font-mono text-[11px] text-ink-3 mt-1 shrink-0">–</span>
+            )}
+            <EditableText
+              value={item}
+              onCommit={(text) => setAt(i, text)}
+              placeholder={placeholder}
+              aria-label={`${label} ${i + 1}`}
+              className="flex-1"
+            />
+            <button
+              type="button"
+              onClick={() => removeAt(i)}
+              className="p-1 rounded-md text-ink-3 hover:text-accent-ink hover:bg-accent-wash/60 opacity-0 group-hover/row:opacity-100 focus:opacity-100 transition-opacity"
+              aria-label={`Remove ${label} ${i + 1}`}
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </li>
+        ))}
+      </ul>
+      <button type="button" onClick={() => onChange([...items, ""])} className={ADD_BTN}>
+        <Plus className="w-3 h-3" />
+        Add
+      </button>
+    </div>
   );
 }
 

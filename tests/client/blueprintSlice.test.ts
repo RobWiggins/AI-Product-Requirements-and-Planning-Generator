@@ -17,6 +17,7 @@ import {
   selectTaskProgress,
   selectTasksForStory,
   storiesReordered,
+  prdUpdated,
   storyAdded,
   storyDeleted,
   taskToggled,
@@ -57,6 +58,21 @@ describe("blueprintSlice", () => {
 
     store.dispatch(taskToggled("T1"));
     expect(selectStoredBlueprint(state(store))).not.toBe(a);
+  });
+
+  it("edits the product requirements document and includes it in the saved payload", () => {
+    const store = makeStore();
+    store.dispatch(blueprintLoaded(sample));
+    store.dispatch(prdUpdated({ overview: "A clearer overview.", targetAudience: "City dog owners" }));
+    store.dispatch(prdUpdated({ objectives: ["Find dogs", "Book a slot"], outOfScope: ["Payments", "Chat"] }));
+
+    const stored = selectStoredBlueprint(state(store))!;
+    expect(stored.productRequirementsDocument.overview).toBe("A clearer overview.");
+    expect(stored.productRequirementsDocument.targetAudience).toBe("City dog owners");
+    expect(stored.productRequirementsDocument.objectives).toEqual(["Find dogs", "Book a slot"]);
+    expect(stored.productRequirementsDocument.outOfScope).toEqual(["Payments", "Chat"]);
+    expect(stored.productRequirementsDocument.scope).toBe(sample.productRequirementsDocument.scope);
+    expect(selectIsDirty(state(store))).toBe(true);
   });
 
   it("toggles and edits tasks, marking the document dirty", () => {
