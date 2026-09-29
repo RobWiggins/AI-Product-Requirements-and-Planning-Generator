@@ -12,6 +12,7 @@ import {
   setCurrentProject,
   updateProject,
 } from "../store/slices/projectsSlice";
+import DraftingOverlay from "./DraftingOverlay";
 import EpicCanvas from "./EpicCanvas";
 import EpicSidebar from "./EpicSidebar";
 import Footer from "./Footer";
@@ -382,6 +383,8 @@ export default function Workspace({ user, settings, onSetSettings }: Props) {
           )}
         </AnimatePresence>
       </main>
+
+      <AnimatePresence>{isGenerating && <DraftingOverlay key="drafting" brief={goalInput} />}</AnimatePresence>
 
       <Tweaks
         visible={tweaksVisible}

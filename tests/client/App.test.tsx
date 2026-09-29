@@ -10,7 +10,8 @@ import projectsReducer from "@client/store/slices/projectsSlice";
  * jsdom has no `fetch`; stand in for the API with a tiny router keyed on
  * `METHOD /path`. `me` is the user a session cookie would resolve to.
  */
-type Route = (body: unknown) => { status: number; body?: unknown };
+type Reply = { status: number; body?: unknown };
+type Route = (body: unknown) => Reply | Promise<Reply>;
 
 const guest = {
   id: "11111111-1111-4111-8111-111111111111",
@@ -49,7 +50,7 @@ function mockApi(overrides: Record<string, Route> = {}) {
     calls.push(key);
     const route = routes[key];
     if (!route) return reply(404, { error: `Unmocked ${key}` });
-    const { status, body } = route(init?.body ? JSON.parse(init.body as string) : undefined);
+    const { status, body } = await route(init?.body ? JSON.parse(init.body as string) : undefined);
     return reply(status, body);
   });
   global.fetch = fetchMock as unknown as typeof fetch;
@@ -134,6 +135,28 @@ describe("App", () => {
       "An app that helps dog owners find safe, trusted playdates for their dogs nearby.",
     );
     expect(screen.getByRole("button", { name: /draft my plan/i })).toBeEnabled();
+  });
+
+  it("shows the drafting overlay while a plan is being generated", async () => {
+    const user = userEvent.setup();
+    mockApi({
+      "GET /api/auth/me": () => ({ status: 200, body: { user: guest } }),
+      // Never resolves: keeps the request in flight for the duration of the test.
+      "GET /api/search": () => new Promise<Reply>(() => {}),
+    });
+    renderApp();
+
+    await user.click(await screen.findByRole("button", { name: /try an example/i }));
+    expect(screen.queryByRole("status", { name: /drafting your plan/i })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /draft my plan/i }));
+
+    const overlay = await screen.findByRole("status", { name: /drafting your plan/i });
+    expect(overlay).toHaveTextContent(/turning your paragraph into/i);
+    expect(overlay).toHaveTextContent(/reading your brief/i);
+    // The brief is echoed back so the user sees what's in flight.
+    expect(overlay).toHaveTextContent(/dog owners find safe, trusted playdates/i);
+    expect(screen.getByRole("button", { name: /drafting/i })).toBeDisabled();
   });
 
   it("signs out back to the login screen", async () => {
