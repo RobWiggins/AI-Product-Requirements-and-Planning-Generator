@@ -251,6 +251,19 @@ export const selectStoryCountByEpic = createSelector([selectAllStories], (all) =
   return counts;
 });
 
+/** Per-epic story/task counts for the overview map. */
+export const selectEpicSummaries = createSelector(
+  [selectAllEpics, selectAllStories, selectAllTasks],
+  (epics, allStories, allTasks) =>
+    epics.map((epic, index) => {
+      const stories = allStories.filter((s) => s.epicId === epic.epicId);
+      const storyIds = new Set(stories.map((s) => s.storyId));
+      const tasks = allTasks.filter((t) => storyIds.has(t.storyId));
+      const done = tasks.filter((t) => t.completed).length;
+      return { epic, index, storyCount: stories.length, taskCount: tasks.length, done };
+    }),
+);
+
 export const selectTaskProgress = createSelector([selectAllTasks], (all) => ({
   total: all.length,
   done: all.filter((t) => t.completed).length,
