@@ -1,8 +1,11 @@
-import { Plus } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import { Reorder } from "motion/react";
 import { Epic, UserStory } from "../lib/ai";
 import { StoryCard } from "./StoryCard";
-import { colorForEpic, PRIORITY_CHIP } from "../lib/palette";
+import EditableText from "./EditableText";
+import PriorityChip from "./PriorityChip";
+import { colorForEpic } from "../lib/palette";
+import { newId } from "../lib/ids";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import {
   epicUpdated,
@@ -20,7 +23,7 @@ interface Props {
 
 export function newStory(epicId: string): UserStory {
   return {
-    storyId: crypto.randomUUID(),
+    storyId: newId(),
     epicId,
     title: "New User Story",
     asA: "user",
@@ -37,8 +40,7 @@ export function EpicCanvas({ activeEpic, expandedStoryId, onSetExpandedStory }: 
   const stories = useAppSelector((s) => selectStoriesForEpic(s, activeEpic.epicId));
   const c = colorForEpic(Math.max(0, epicIndex));
 
-  const onUpdateEpicField = (field: "title" | "description", value: string) =>
-    dispatch(epicUpdated({ id: activeEpic.epicId, changes: { [field]: value } }));
+  const update = (changes: Partial<Epic>) => dispatch(epicUpdated({ id: activeEpic.epicId, changes }));
 
   const onAddStory = () => {
     const story = newStory(activeEpic.epicId);
@@ -60,13 +62,12 @@ export function EpicCanvas({ activeEpic, expandedStoryId, onSetExpandedStory }: 
             <span className="w-2 h-2 rounded-full" style={{ background: c.fg }} aria-hidden />
             Epic {String(epicIndex + 1).padStart(2, "0")}
           </span>
-          <span
-            className={`font-mono text-[10px] uppercase tracking-[0.14em] px-2 py-[3px] rounded-full ${
-              PRIORITY_CHIP[activeEpic.priority]
-            }`}
-          >
-            {activeEpic.priority} priority
-          </span>
+          <PriorityChip
+            value={activeEpic.priority}
+            suffix="priority"
+            onChange={(priority) => update({ priority })}
+            className="tracking-[0.14em]"
+          />
           <span className="font-mono text-[11px] text-ink-3">
             {stories.length} {stories.length === 1 ? "story" : "stories"}
           </span>
@@ -80,22 +81,28 @@ export function EpicCanvas({ activeEpic, expandedStoryId, onSetExpandedStory }: 
           </button>
         </div>
 
-        <h2
-          className="font-serif text-[clamp(26px,3vw,36px)] font-medium tracking-[-0.015em] leading-[1.15] text-ink outline-none mb-2 focus:text-accent-ink transition-colors"
-          contentEditable
-          suppressContentEditableWarning
-          onBlur={(e) => onUpdateEpicField("title", e.currentTarget.innerText)}
-        >
-          {activeEpic.title}
-        </h2>
+        <EditableText
+          as="h2"
+          value={activeEpic.title}
+          required
+          onCommit={(title) => update({ title })}
+          aria-label="Epic title"
+          className="font-serif text-[clamp(26px,3vw,36px)] font-medium tracking-[-0.015em] leading-[1.15] text-ink mb-2"
+        />
 
-        <p
-          className="font-ui text-[16px] leading-[1.6] text-ink-2 max-w-3xl outline-none focus:text-ink transition-colors"
-          contentEditable
-          suppressContentEditableWarning
-          onBlur={(e) => onUpdateEpicField("description", e.currentTarget.innerText)}
-        >
-          {activeEpic.description}
+        <EditableText
+          as="p"
+          value={activeEpic.description}
+          multiline
+          onCommit={(description) => update({ description })}
+          placeholder="Describe the high-level objective of this epic…"
+          aria-label="Epic description"
+          className="font-ui text-[16px] leading-[1.6] text-ink-2 max-w-3xl"
+        />
+
+        <p className="mt-3 mb-0 inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-ink-3">
+          <Pencil className="w-3 h-3" />
+          Click any text to edit · changes save automatically
         </p>
       </div>
 

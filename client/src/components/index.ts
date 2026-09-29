@@ -13,3 +13,5 @@ export { default as UserMenu } from './UserMenu';
 export { default as ProjectList } from './ProjectList';
 export { default as Workspace } from './Workspace';
 export { default as DraftingOverlay } from './DraftingOverlay';
+export { default as EditableText } from './EditableText';
+export { default as PriorityChip } from './PriorityChip';

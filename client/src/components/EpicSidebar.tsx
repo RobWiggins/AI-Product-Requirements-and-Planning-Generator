@@ -1,6 +1,7 @@
 import { ChevronRight, FileText, Plus, Trash2 } from "lucide-react";
 import type { Epic } from "../lib/ai";
 import { colorForEpic } from "../lib/palette";
+import { newId } from "../lib/ids";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import {
   epicAdded,
@@ -21,7 +22,7 @@ interface Props {
 
 export function newEpic(): Epic {
   return {
-    epicId: crypto.randomUUID(),
+    epicId: newId(),
     title: "New Epic",
     description: "Describe the high-level objective of this domain…",
     priority: "Medium",

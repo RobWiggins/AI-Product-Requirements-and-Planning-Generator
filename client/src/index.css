@@ -96,6 +96,35 @@
   .rule-dashed {
     border-top: 1px dashed var(--color-rule);
   }
+
+  /*
+   * Inline editable text (see components/EditableText.tsx).
+   * Hover: text cursor + warm wash so editable fields are discoverable.
+   * Focus: accent ring. Empty: italic placeholder from data-placeholder.
+   */
+  .editable {
+    cursor: text;
+    outline: none;
+    border-radius: 4px;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+    box-shadow: 0 0 0 0 transparent;
+    transition: background-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .editable:hover {
+    background: color-mix(in oklch, var(--color-accent-wash) 28%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-accent-wash) 28%, transparent);
+  }
+  .editable:focus {
+    background: var(--color-paper);
+    box-shadow: 0 0 0 2px color-mix(in oklch, var(--color-accent) 45%, transparent);
+  }
+  .editable:empty::before {
+    content: attr(data-placeholder);
+    color: var(--color-ink-3);
+    font-style: italic;
+    pointer-events: none;
+  }
 }
 
 /* Drafting overlay animations (used via Tailwind arbitrary `animate-[...]`) */
