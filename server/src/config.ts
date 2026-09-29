@@ -23,6 +23,8 @@ export const config = {
   clientUrl: trimSlash(process.env.CLIENT_URL ?? "http://localhost:3000"),
 
   /** Public origin of this API, used to build OAuth redirect URIs. */
+  // Local Vite: set API_PUBLIC_URL to the client origin so Google returns
+  // through the /api proxy and the session cookie is same-origin.
   apiPublicUrl: trimSlash(process.env.API_PUBLIC_URL ?? `http://localhost:${port}`),
 
   session: {
