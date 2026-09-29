@@ -16,12 +16,17 @@ export function Header({ blueprint, workspaceView, onWorkspaceView, onClear, acc
   return (
     <header className="sticky top-0 z-20 border-b border-rule-soft bg-paper/90 backdrop-blur-md px-5 sm:px-8 py-3.5 flex items-center justify-between gap-4">
       <div className="flex items-center gap-5 min-w-0">
-        <div className="flex items-center gap-2.5 shrink-0">
+        <button
+          type="button"
+          onClick={() => onWorkspaceView("overview")}
+          aria-label="Back to overview"
+          className="flex items-center gap-2.5 shrink-0 rounded-lg -ml-1 px-1 py-0.5 hover:opacity-80 transition-opacity"
+        >
           <span className="text-accent text-[22px] -translate-y-px select-none">◐</span>
           <span className="font-serif text-[22px] font-semibold tracking-tight text-ink">
             StoryFlow
           </span>
-        </div>
+        </button>
 
         {blueprint && (
           <>
