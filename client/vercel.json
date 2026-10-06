@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://storyflow-server-77255c983d03.herokuapp.com/api/:path*"
+    }
+  ]
+}

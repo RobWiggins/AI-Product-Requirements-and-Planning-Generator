@@ -3,9 +3,10 @@ import type { ProjectBlueprint } from "./ai";
 /**
  * Thin fetch wrapper for the StoryFlow API.
  *
- * Paths are relative (`/api/...`): in development Vite proxies them to the
- * Express server; in production the client is served same-origin with the API.
- * The session is an httpOnly cookie, so every call sends credentials.
+ * Paths are relative (`/api/...`). In development Vite proxies them to the
+ * Express server. In production, client/vercel.json proxies them to Heroku.
+ * Either way the browser stays on the client origin, so the httpOnly session
+ * cookie is sent with every call.
  */
 
 export class ApiError extends Error {

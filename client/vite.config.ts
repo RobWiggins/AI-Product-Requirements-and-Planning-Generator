@@ -4,9 +4,9 @@ import path from 'path';
 import { defineConfig } from 'vite';
 
 // The API server (server/) listens here in development. Override with
-// VITE_API_TARGET if you run it elsewhere. Production builds should be served
-// same-origin with the API (or behind one reverse proxy) so the session cookie
-// is sent with `/api` requests.
+// CONFIG_API_TARGET if you run it elsewhere. Production does not use this
+// proxy; client/vercel.json forwards `/api` to Heroku so the session cookie
+// stays on the Vercel origin.
 const API_TARGET = process.env.CONFIG_API_TARGET ?? 'http://localhost:3001';
 
 export default defineConfig({
