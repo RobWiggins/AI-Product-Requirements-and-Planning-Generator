@@ -47,4 +47,9 @@ CREATE TABLE sessions (
 CREATE INDEX idx_sessions_user_id    ON sessions(user_id);
 CREATE INDEX idx_sessions_expires_at ON sessions(expires_at);
 
-GRANT ALL PRIVILEGES ON TABLE auth_identities, sessions TO storyflow;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'storyflow') THEN
+    GRANT ALL PRIVILEGES ON TABLE auth_identities, sessions TO storyflow;
+  END IF;
+END $$;

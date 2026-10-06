@@ -97,5 +97,10 @@ CREATE INDEX idx_stories_project_id ON user_stories(project_id);
 CREATE INDEX idx_gherkin_project_id ON gherkin_scenarios(project_id);
 CREATE INDEX idx_tasks_project_id ON tasks(project_id);
 
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO storyflow;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO storyflow;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'storyflow') THEN
+    GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO storyflow;
+    GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO storyflow;
+  END IF;
+END $$;

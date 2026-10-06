@@ -61,4 +61,9 @@ WHERE p.prd <> '{}'::jsonb
 -- legacy column:
 -- ALTER TABLE projects DROP COLUMN prd;
 
-GRANT ALL PRIVILEGES ON TABLE product_requirements_documents TO storyflow;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'storyflow') THEN
+    GRANT ALL PRIVILEGES ON TABLE product_requirements_documents TO storyflow;
+  END IF;
+END $$;
