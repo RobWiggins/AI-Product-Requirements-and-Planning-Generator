@@ -149,7 +149,7 @@ Rules:
 
     const jsonSchema = z.toJSONSchema(ProjectBlueprintSchema);
     const stream = client.messages.stream({
-      model: "claude-opus-4-7",
+      model: "claude-sonnet-4-6",
       max_tokens: 16000,
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content: projectDescription }],
