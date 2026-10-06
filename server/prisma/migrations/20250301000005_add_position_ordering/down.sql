@@ -1,0 +1,5 @@
+ALTER TABLE epics DROP COLUMN IF EXISTS position;
+ALTER TABLE user_stories DROP COLUMN IF EXISTS position;
+ALTER TABLE gherkin_scenarios DROP COLUMN IF EXISTS position;
+ALTER TABLE tasks DROP COLUMN IF EXISTS position;
+ALTER TABLE priorities DROP COLUMN IF EXISTS position;

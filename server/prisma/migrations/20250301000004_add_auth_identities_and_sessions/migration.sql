@@ -10,9 +10,6 @@
 --   * email is optional (guests have none) but still unique when present
 --   * password_hash is dropped — there is no password flow
 --   * avatar_url / is_guest carry provider profile + guest state
---
--- Run after add_relation_foreign_keys_003.sql:
---   psql -U storyflow -d storyflow -f server/src/migrations/add_auth_identities_and_sessions_004.sql
 
 ALTER TABLE users
   DROP COLUMN password_hash,

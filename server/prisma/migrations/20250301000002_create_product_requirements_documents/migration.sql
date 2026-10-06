@@ -2,9 +2,6 @@
 --
 -- Mirrors ProductRequirementsDocumentSchema in server/src/schemas/claudeResponse.ts:
 --   overview, objectives[], targetAudience, successMetrics[], scope, outOfScope[]
---
--- Run after create_project_tables.sql:
---   psql -U storyflow -d storyflow -f server/src/migrations/create_product_requirements_documents.sql
 
 CREATE TABLE product_requirements_documents (
   id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),

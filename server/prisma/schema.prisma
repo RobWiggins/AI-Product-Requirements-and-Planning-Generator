@@ -1,6 +1,7 @@
 // Prisma schema for the StoryFlow database.
 //
-// Models map 1:1 onto the tables created by server/src/migrations/*.sql.
+// Models map 1:1 onto the tables in prisma/migrations.
+// Apply with: npm run prisma:deploy --workspace=server
 // Field names are camelCase (matching the API / client types); @map / @@map
 // bind them to the snake_case columns and tables in PostgreSQL.
 //

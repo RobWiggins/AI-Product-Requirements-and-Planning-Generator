@@ -8,11 +8,6 @@
 --
 -- ON UPDATE CASCADE: renaming an epic_id / story_id propagates to children.
 -- ON DELETE CASCADE: deleting an epic removes its stories, scenarios, tasks.
---
--- Generated with:
---   npm run prisma:diff --workspace=server
--- Run after create_product_requirements_documents_002.sql:
---   psql -U storyflow -d storyflow -f server/src/migrations/add_relation_foreign_keys_003.sql
 
 ALTER TABLE user_stories
   ADD CONSTRAINT user_stories_project_id_epic_id_fkey

@@ -10,6 +10,10 @@
     "prisma:generate": "prisma generate",
     "prisma:validate": "prisma validate",
     "prisma:studio": "prisma studio",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:rollback": "ts-node --transpile-only scripts/migrate-down.ts",
+    "prisma:rollback:all": "ts-node --transpile-only scripts/migrate-down.ts --to 0",
     "prisma:diff": "prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script"
   },
   "dependencies": {

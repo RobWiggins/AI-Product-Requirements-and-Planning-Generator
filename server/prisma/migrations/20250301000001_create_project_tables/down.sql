@@ -1,0 +1,7 @@
+DROP TABLE IF EXISTS priorities;
+DROP TABLE IF EXISTS tasks;
+DROP TABLE IF EXISTS gherkin_scenarios;
+DROP TABLE IF EXISTS user_stories;
+DROP TABLE IF EXISTS epics;
+DROP TABLE IF EXISTS projects;
+DROP TABLE IF EXISTS users;
