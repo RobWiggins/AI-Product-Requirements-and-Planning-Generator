@@ -17,7 +17,11 @@ dotenv.config({ path: path.resolve(__dirname, "../../.env") });
  *
  * Prisma 7 talks to PostgreSQL through the `pg` driver adapter.
  */
-const adapter = new PrismaPg({ connectionString: databaseUrl() });
+const adapter = new PrismaPg({
+  connectionString: databaseUrl(),
+  // Heroku Postgres requires TLS. The addon sets DATABASE_URL; local PG* does not.
+  ...(process.env.DATABASE_URL ? { ssl: { rejectUnauthorized: false } } : {}),
+});
 
 export const prisma = new PrismaClient({ adapter });
 
