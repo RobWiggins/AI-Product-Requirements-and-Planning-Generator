@@ -7,7 +7,7 @@ import { defineConfig } from 'vite';
 // VITE_API_TARGET if you run it elsewhere. Production builds should be served
 // same-origin with the API (or behind one reverse proxy) so the session cookie
 // is sent with `/api` requests.
-const API_TARGET = process.env.VITE_API_TARGET ?? 'http://localhost:3001';
+const API_TARGET = process.env.CONFIG_API_TARGET ?? 'http://localhost:3001';
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
