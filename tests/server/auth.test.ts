@@ -110,8 +110,9 @@ describe("auth", () => {
   });
 
   it("protects generation behind a session", async () => {
-    const res = await request(app).get("/api/search?description=anything");
+    const res = await request(app).post("/api/search").send({ description: "anything" });
     expect(res.status).toBe(401);
+    expect((await request(app).get("/api/search/00000000-0000-4000-8000-000000000000")).status).toBe(401);
   });
 });
 

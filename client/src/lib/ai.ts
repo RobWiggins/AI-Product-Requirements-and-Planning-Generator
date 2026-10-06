@@ -3,8 +3,8 @@ import { z } from "zod";
 /**
  * ProjectBlueprint types shared across the UI.
  *
- * Generation happens on the server (GET /api/search); the client never talks
- * to Anthropic directly, so no API key is shipped in the bundle. These schemas
+ * Generation happens on the server (POST /api/search, then poll GET /api/search/:jobId).
+ * The client never talks to Anthropic directly, so no API key is shipped in the bundle. These schemas
  * mirror server/src/schemas/claudeResponse.ts.
  */
 

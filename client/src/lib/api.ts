@@ -114,83 +114,38 @@ export const projectsApi = {
   remove: (id: string) => api<void>(`/projects/${id}`, { method: "DELETE" }),
 };
 
-async function readSseGeneration(res: Response): Promise<{ projectBlueprint: ProjectBlueprint }> {
-  if (!res.body) throw new ApiError(502, "Generation stream was empty.");
+const POLL_MS = 1500;
+const GENERATION_TIMEOUT_MS = 3 * 60 * 1000;
 
-  const reader = res.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-  const acc: {
-    result: { projectBlueprint: ProjectBlueprint } | null;
-    errorMessage: string | null;
-    issues: unknown;
-  } = { result: null, errorMessage: null, issues: undefined };
-
-  const consumeBlock = (block: string) => {
-    let event = "message";
-    const dataLines: string[] = [];
-    for (const rawLine of block.split("\n")) {
-      const line = rawLine.replace(/\r$/, "");
-      if (!line || line.startsWith(":")) continue;
-      if (line.startsWith("event:")) event = line.slice(6).trim();
-      else if (line.startsWith("data:")) dataLines.push(line.slice(5).trimStart());
-    }
-    if (dataLines.length === 0) return;
-
-    let payload: unknown = dataLines.join("\n");
-    try {
-      payload = JSON.parse(dataLines.join("\n"));
-    } catch {
-      // keep the raw string
-    }
-
-    if (event === "result") {
-      acc.result = payload as { projectBlueprint: ProjectBlueprint };
-    } else if (event === "error") {
-      const err = (payload ?? {}) as { error?: string; issues?: unknown };
-      acc.errorMessage = err.error ?? "Generation failed.";
-      acc.issues = err.issues;
-    }
-  };
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    const parts = buffer.split("\n\n");
-    buffer = parts.pop() ?? "";
-    for (const part of parts) consumeBlock(part);
-  }
-  if (buffer.trim()) consumeBlock(buffer);
-
-  if (acc.errorMessage) throw new ApiError(502, acc.errorMessage, acc.issues);
-  if (!acc.result?.projectBlueprint) throw new ApiError(502, "Generation ended without a result.");
-  return acc.result;
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export const generateApi = {
   blueprint: async (description: string) => {
-    const res = await fetch(`/api/search?description=${encodeURIComponent(description)}`, {
-      credentials: "include",
-      headers: { Accept: "text/event-stream, application/json" },
+    const { jobId } = await api<{ jobId: string }>("/search", {
+      method: "POST",
+      json: { description },
     });
 
-    if (!res.ok) {
-      const body: unknown = await res.json().catch(() => null);
-      const err = (body ?? {}) as { error?: string; issues?: unknown };
-      throw new ApiError(res.status, err.error ?? res.statusText, err.issues);
+    const deadline = Date.now() + GENERATION_TIMEOUT_MS;
+    while (Date.now() < deadline) {
+      const job = await api<{
+        status: "pending" | "complete" | "error";
+        projectBlueprint?: ProjectBlueprint;
+        error?: string;
+        issues?: unknown;
+      }>(`/search/${jobId}`);
+
+      if (job.status === "complete" && job.projectBlueprint) {
+        return { projectBlueprint: job.projectBlueprint };
+      }
+      if (job.status === "error") {
+        throw new ApiError(502, job.error ?? "Generation failed.", job.issues);
+      }
+      await wait(POLL_MS);
     }
 
-    const contentType = res.headers?.get?.("content-type") ?? "";
-    if (contentType.includes("text/event-stream")) {
-      return readSseGeneration(res);
-    }
-
-    const body: unknown = await res.json().catch(() => null);
-    const parsed = body as { projectBlueprint?: ProjectBlueprint; error?: string; issues?: unknown };
-    if (!parsed?.projectBlueprint) {
-      throw new ApiError(502, parsed?.error ?? "Generation ended without a result.", parsed?.issues);
-    }
-    return { projectBlueprint: parsed.projectBlueprint };
+    throw new ApiError(504, "Generation timed out. Please try again.");
   },
 };

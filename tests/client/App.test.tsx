@@ -141,7 +141,7 @@ describe("App", () => {
     mockApi({
       "GET /api/auth/me": () => ({ status: 200, body: { user: guest } }),
       // Never resolves: keeps the request in flight for the duration of the test.
-      "GET /api/search": () => new Promise<Reply>(() => {}),
+      "POST /api/search": () => new Promise<Reply>(() => {}),
     });
     renderApp();
 
