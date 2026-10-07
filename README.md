@@ -1,5 +1,7 @@
 # StoryFlow
 
+**Live:** [https://storyflow-gamma.vercel.app/](https://storyflow-gamma.vercel.app/)
+
 An AI-powered product planning app. A visitor describes an idea in plain language; the server asks Claude for a structured **ProjectBlueprint** (PRD, epics, user stories, Gherkin, tasks, priorities). Guests and signed-in users can edit that plan in the browser and persist it to PostgreSQL.
 
 This repository is an npm workspace:
