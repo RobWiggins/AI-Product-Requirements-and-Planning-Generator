@@ -6,6 +6,10 @@ import path from "path";
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
 const trimSlash = (url: string) => url.replace(/\/+$/, "");
+const envTrim = (name: string): string | undefined => {
+  const value = process.env[name]?.trim();
+  return value || undefined;
+};
 const port = Number(process.env.PORT ?? 3001);
 
 export type OAuthProviderName = "google" | "github";
@@ -34,12 +38,12 @@ export const config = {
 
   oauth: {
     google: {
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      clientId: envTrim("GOOGLE_CLIENT_ID"),
+      clientSecret: envTrim("GOOGLE_CLIENT_SECRET"),
     },
     github: {
-      clientId: process.env.GITHUB_CLIENT_ID,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET,
+      clientId: envTrim("GITHUB_CLIENT_ID"),
+      clientSecret: envTrim("GITHUB_CLIENT_SECRET"),
     },
   } satisfies Record<OAuthProviderName, OAuthClientConfig>,
 } as const;

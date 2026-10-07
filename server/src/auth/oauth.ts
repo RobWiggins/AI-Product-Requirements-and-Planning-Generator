@@ -109,12 +109,23 @@ const github: ProviderAdapter = {
   },
 
   async exchangeCode(code, redirectUri) {
-    const token = await postForm("https://github.com/login/oauth/access_token", {
-      client_id: config.oauth.github.clientId!,
-      client_secret: config.oauth.github.clientSecret!,
-      code,
-      redirect_uri: redirectUri,
-    });
+    // GitHub often returns HTTP 200 with `{ error, error_description }` when
+    // the client secret, code, or redirect_uri is wrong. Treat that as failure.
+    const token = await postForm(
+      "https://github.com/login/oauth/access_token",
+      {
+        client_id: config.oauth.github.clientId!,
+        client_secret: config.oauth.github.clientSecret!,
+        code,
+        redirect_uri: redirectUri,
+      },
+      { "User-Agent": "StoryFlow" },
+    );
+    if (typeof token.error === "string") {
+      const detail =
+        typeof token.error_description === "string" ? `: ${token.error_description}` : "";
+      throw new HttpError(502, `GitHub token exchange failed (${token.error}${detail})`);
+    }
     const accessToken = token.access_token;
     if (typeof accessToken !== "string") throw new HttpError(502, "GitHub did not return an access token");
 
