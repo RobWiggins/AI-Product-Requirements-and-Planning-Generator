@@ -118,7 +118,7 @@ export async function runGeneration(job: GenerationJob, description: string): Pr
     try {
       const response = await client.messages
         .stream({
-          model: "claude-sonnet-4-6",
+          model: "claude-opus-4-7",
           max_tokens: 16000,
           system: SYSTEM_PROMPT,
           messages: [{ role: "user", content: description }],
