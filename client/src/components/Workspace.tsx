@@ -216,7 +216,7 @@ export default function Workspace({ user, settings, onSetSettings }: Props) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.2 }}
-              className="flex flex-col md:flex-row h-full min-h-0 md:pl-4 md:pr-2 md:py-4 gap-4"
+              className="flex flex-col md:flex-row h-full min-h-0 min-w-0 p-3 md:pl-4 md:pr-2 md:py-4 gap-3 md:gap-4"
             >
               <EpicSidebar
                 workspaceView={workspaceView}

@@ -53,7 +53,7 @@ export function EpicCanvas({ activeEpic, expandedStoryId, onSetExpandedStory }: 
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      <div className="shrink-0 px-6 lg:px-10 pt-7 pb-5 border-b border-rule-soft bg-paper/70">
+      <div className="shrink-0 px-4 sm:px-6 lg:px-10 pt-5 sm:pt-7 pb-4 sm:pb-5 border-b border-rule-soft bg-paper/70">
         <div className="flex flex-wrap items-center gap-3 mb-4">
           <span
             className="font-mono text-[11px] uppercase tracking-[0.14em] inline-flex items-center gap-2"
@@ -106,7 +106,7 @@ export function EpicCanvas({ activeEpic, expandedStoryId, onSetExpandedStory }: 
         </p>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-6 lg:px-10 py-6">
+      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-4 sm:px-6 lg:px-10 py-5 sm:py-6">
         {stories.length === 0 ? (
           <div className="py-16 text-center rounded-2xl border border-dashed border-rule">
             <p className="font-serif italic text-[16px] text-ink-3 mb-4">

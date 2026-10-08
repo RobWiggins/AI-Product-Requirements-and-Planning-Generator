@@ -45,11 +45,11 @@ export function EpicSidebar({ workspaceView, activeEpicId, onSelectOverview, onS
   const onDeleteEpic = (id: string) => dispatch(epicDeleted(id));
 
   return (
-    <aside className="w-[17.5rem] xl:w-80 shrink-0 flex flex-col gap-4 h-full min-h-0">
+    <aside className="w-full md:w-[17.5rem] xl:w-80 shrink-0 flex flex-col gap-3 md:gap-4 min-h-0 md:h-full max-h-[min(20rem,calc(100dvh-16rem))] md:max-h-none">
       <button
         type="button"
         onClick={onSelectOverview}
-        className={`w-full text-left rounded-2xl border p-4 transition-colors ${
+        className={`w-full text-left rounded-2xl border p-3 md:p-4 transition-colors ${
           workspaceView === "overview"
             ? "border-accent/40 bg-accent-wash/50"
             : "border-rule-soft bg-paper hover:border-accent/30"
@@ -59,7 +59,7 @@ export function EpicSidebar({ workspaceView, activeEpicId, onSelectOverview, onS
           <FileText className="w-3.5 h-3.5" />
           Overview
         </span>
-        <p className="font-ui text-[13px] text-ink-2 mt-1.5 leading-snug line-clamp-2">
+        <p className="hidden md:block font-ui text-[13px] text-ink-2 mt-1.5 leading-snug line-clamp-2">
           {meta?.description}
         </p>
       </button>
@@ -134,7 +134,7 @@ export function EpicSidebar({ workspaceView, activeEpicId, onSelectOverview, onS
         </button>
       </div>
 
-      <div className="bg-paper border border-rule-soft rounded-2xl p-4 shrink-0">
+      <div className="hidden md:block bg-paper border border-rule-soft rounded-2xl p-4 shrink-0">
         <div className="flex items-baseline justify-between mb-2.5">
           <span className="eyebrow">Tasks done</span>
           <span className="font-mono text-[11px] text-ink-3">

@@ -35,10 +35,10 @@ export function OverviewPanel({ onOpenEpic }: Props) {
   const setList = (key: "objectives" | "successMetrics" | "outOfScope", next: string[]) => patch({ [key]: next });
 
   return (
-    <div className="h-full overflow-y-auto custom-scrollbar px-6 lg:px-10 py-7">
+    <div className="h-full overflow-y-auto custom-scrollbar px-4 sm:px-6 lg:px-10 py-5 sm:py-7">
       <div className="max-w-6xl mx-auto flex flex-col gap-7">
         <header className="flex flex-col gap-2.5">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-3">
             <span className="eyebrow">Overview</span>
             <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-ink-3">
               <Pencil className="w-3 h-3" />

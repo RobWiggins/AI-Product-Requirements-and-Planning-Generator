@@ -60,7 +60,7 @@ export default function App() {
   }, [settings.accentHue, settings.serif]);
 
   return (
-    <div className="relative flex flex-col min-h-screen h-screen bg-paper text-ink font-ui selection:bg-accent-wash">
+    <div className="relative flex flex-col min-h-screen h-screen overflow-x-hidden bg-paper text-ink font-ui selection:bg-accent-wash">
       {/* Soft, vibrant paper wash that follows the accent hue */}
       <div
         aria-hidden

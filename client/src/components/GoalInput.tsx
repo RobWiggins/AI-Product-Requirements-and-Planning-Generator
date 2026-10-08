@@ -54,9 +54,9 @@ export function GoalInput({ goalInput, isGenerating, error, onChange, onGenerate
             For solo founders &amp; indie makers
           </div>
 
-          <h2 className="font-serif text-[clamp(40px,5.4vw,68px)] leading-[1.05] tracking-[-0.025em] font-normal text-ink mb-5">
+          <h2 className="font-serif text-[clamp(1.75rem,8vw,4.25rem)] leading-[1.05] tracking-[-0.025em] font-normal text-ink mb-5">
             From <em className="italic font-medium text-accent-ink">a single paragraph</em>
-            <br />
+            <br className="hidden sm:block" />{" "}
             to a full product plan.
           </h2>
 

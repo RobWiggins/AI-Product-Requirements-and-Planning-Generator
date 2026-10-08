@@ -57,7 +57,7 @@ export function UserMenu({ user, providers, onSignOut, onLinkProvider }: Props) 
       {open && (
         <div
           role="menu"
-          className="absolute right-0 mt-2 w-72 rounded-2xl border border-rule bg-paper shadow-[0_18px_40px_-24px_oklch(0.4_0.06_50/.4)] p-2 z-30"
+          className="absolute right-0 mt-2 w-[min(18rem,calc(100vw-2rem))] rounded-2xl border border-rule bg-paper shadow-[0_18px_40px_-24px_oklch(0.4_0.06_50/.4)] p-2 z-30"
         >
           <div className="px-3 py-2.5 flex items-center gap-3 border-b border-rule-soft mb-1">
             <Avatar user={user} size="lg" />
